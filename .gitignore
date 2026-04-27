@@ -216,3 +216,30 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Odoo local configuration and runtime artifacts
+odoo.conf
+odoo.cfg
+.odoorc
+
+# Odoo logs and pid files
+odoo.log
+odoo-server.log
+odoo*.log
+
+# Odoo filestore and local sessions (if mapped to workspace)
+filestore/
+.local/share/Odoo/
+sessions/
+
+# Odoo temporary files and backups
+*.save
+*.bak
+*.sql
+*.dump
+
+# Docker local overrides and bind-mounted data folders
+docker-compose.override.yml
+postgres-data/
+pgdata/
+odoo-data/

@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
+*.pyc
 *$py.class
 
 # C extensions
@@ -235,6 +236,7 @@ sessions/
 # Odoo temporary files and backups
 *.save
 *.bak
+*.zip
 *.sql
 *.dump
 
@@ -243,3 +245,7 @@ docker-compose.override.yml
 postgres-data/
 pgdata/
 odoo-data/
+
+# Ignorar archivos de sistema operativo
+.DS_Store
+Thumbs.db

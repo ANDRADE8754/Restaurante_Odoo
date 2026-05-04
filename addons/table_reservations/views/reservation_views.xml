@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Vista de lista de reservas -->
+        <record id="view_table_reservation_tree" model="ir.ui.view">
+            <field name="name">Reservas - Lista</field>
+            <field name="model">table.reservation</field>
+            <field name="arch" type="xml">
+                <list string="Reservas de Mesa" decoration-success="state == 'confirmed'" decoration-danger="state == 'cancelled'" decoration-info="state == 'completed'">
+                    <field name="reservation_number"/>
+                    <field name="partner_id"/>
+                    <field name="table_id"/>
+                    <field name="reservation_datetime"/>
+                    <field name="number_of_guests"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Vista de calendario de reservas -->
+        <record id="view_table_reservation_calendar" model="ir.ui.view">
+            <field name="name">Reservas - Calendario</field>
+            <field name="model">table.reservation</field>
+            <field name="arch" type="xml">
+                <calendar string="Reservas de Mesa" date_start="reservation_datetime" color="table_id">
+                    <field name="partner_id"/>
+                    <field name="table_id"/>
+                    <field name="number_of_guests"/>
+                </calendar>
+            </field>
+        </record>
+
+        <!-- Vista de formulario de reserva -->
+        <record id="view_table_reservation_form" model="ir.ui.view">
+            <field name="name">Reserva - Formulario</field>
+            <field name="model">table.reservation</field>
+            <field name="arch" type="xml">
+                <form string="Reserva de Mesa">
+                    <header>
+                        <button name="action_confirm" string="Confirmar" type="object" class="btn-primary"/>
+                        <button name="action_start" string="Iniciar" type="object" class="btn-primary"/>
+                        <button name="action_complete" string="Completar" type="object" class="btn-success"/>
+                        <button name="action_cancel" string="Cancelar" type="object" class="btn-danger"/>
+                        <field name="state" widget="statusbar" statusbar_visible="pending,confirmed,in_progress,completed,cancelled"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="reservation_number"/></h1>
+                        </div>
+                        
+                        <group>
+                            <group>
+                                <field name="partner_id"/>
+                                <field name="phone"/>
+                                <field name="email"/>
+                            </group>
+                            <group>
+                                <field name="reservation_datetime"/>
+                                <field name="estimated_duration"/>
+                            </group>
+                        </group>
+
+                        <group string="Detalles de la Reserva">
+                            <group>
+                                <field name="table_id"/>
+                                <field name="number_of_guests"/>
+                            </group>
+                            <group>
+                                <field name="occasion"/>
+                                <field name="created_date" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <group string="Notas y Solicitudes">
+                            <field name="observations" nolabel="1" colspan="2"/>
+                            <field name="special_requests" nolabel="1" colspan="2" placeholder="Ej: Mesa cerca de la ventana, decoración especial, música en vivo"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Vista de búsqueda -->
+        <record id="view_table_reservation_search" model="ir.ui.view">
+            <field name="name">Reservas - Búsqueda</field>
+            <field name="model">table.reservation</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="reservation_number" string="Número de Reserva"/>
+                    <field name="partner_id" string="Cliente"/>
+                    <field name="table_id" string="Mesa"/>
+                    <field name="reservation_datetime"/>
+                    <separator/>
+                    <filter name="pending" string="Pendiente" domain="[('state', '=', 'pending')]"/>
+                    <filter name="confirmed" string="Confirmada" domain="[('state', '=', 'confirmed')]"/>
+                    <filter name="in_progress" string="En Curso" domain="[('state', '=', 'in_progress')]"/>
+                    <filter name="completed" string="Completada" domain="[('state', '=', 'completed')]"/>
+                    <filter name="cancelled" string="Cancelada" domain="[('state', '=', 'cancelled')]"/>
+                </search>
+            </field>
+        </record>
+
+        <!-- Acción para abrir reservas -->
+        <record id="action_table_reservation" model="ir.actions.act_window">
+            <field name="name">Reservas de Mesa</field>
+            <field name="res_model">table.reservation</field>
+            <field name="view_mode">list,calendar,form</field>
+            <field name="search_view_id" ref="view_table_reservation_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Crear una nueva reserva de mesa
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

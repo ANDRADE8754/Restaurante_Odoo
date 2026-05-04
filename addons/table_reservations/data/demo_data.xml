@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Secuencia para números de reserva -->
+        <record id="seq_table_reservation" model="ir.sequence">
+            <field name="name">Reserva de Mesa</field>
+            <field name="code">table.reservation</field>
+            <field name="prefix">RES/%(year)s%(month)02d/</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+
+        <!-- Datos de demostración de mesas -->
+        <record id="demo_table_1" model="restaurant.table">
+            <field name="table_number">MESA 01</field>
+            <field name="capacity">2</field>
+            <field name="location">Piso 1 - Ventana</field>
+            <field name="state">available</field>
+            <field name="description">Mesa íntima para 2 personas con vista a la plaza</field>
+        </record>
+        <record id="demo_table_2" model="restaurant.table">
+            <field name="table_number">MESA 02</field>
+            <field name="capacity">4</field>
+            <field name="location">Piso 1 - Centro</field>
+            <field name="state">available</field>
+            <field name="description">Mesa para 4 personas en zona central</field>
+        </record>
+        <record id="demo_table_3" model="restaurant.table">
+            <field name="table_number">MESA 03</field>
+            <field name="capacity">6</field>
+            <field name="location">Piso 2</field>
+            <field name="state">available</field>
+            <field name="description">Mesa grande para 6 personas, ideal para grupos</field>
+        </record>
+        <record id="demo_table_4" model="restaurant.table">
+            <field name="table_number">MESA 04</field>
+            <field name="capacity">4</field>
+            <field name="location">Piso 1 - Zona Bar</field>
+            <field name="state">available</field>
+            <field name="description">Mesa con vista a la barra</field>
+        </record>
+        <record id="demo_table_5" model="restaurant.table">
+            <field name="table_number">MESA 05</field>
+            <field name="capacity">8</field>
+            <field name="location">Salón Privado</field>
+            <field name="state">available</field>
+            <field name="description">Salón privado para eventos y celebraciones</field>
+        </record>
+
+        <!-- Clientes para reservas -->
+        <record id="res_customer_1" model="res.partner">
+            <field name="name">Roberto Acosta</field>
+            <field name="email">roberto@example.com</field>
+            <field name="phone">0987654331</field>
+            <field name="city">Patate</field>
+        </record>
+        <record id="res_customer_2" model="res.partner">
+            <field name="name">Verónica Zamora</field>
+            <field name="email">veronica@example.com</field>
+            <field name="phone">0987654332</field>
+            <field name="city">Patate</field>
+        </record>
+        <record id="res_customer_3" model="res.partner">
+            <field name="name">Eduardo Castro</field>
+            <field name="email">eduardo@example.com</field>
+            <field name="phone">0987654333</field>
+            <field name="city">Patate</field>
+        </record>
+        <record id="res_customer_4" model="res.partner">
+            <field name="name">Claudia Mendoza</field>
+            <field name="email">claudia@example.com</field>
+            <field name="phone">0987654334</field>
+            <field name="city">Patate</field>
+        </record>
+        <record id="res_customer_5" model="res.partner">
+            <field name="name">Rafael Díaz</field>
+            <field name="email">rafael@example.com</field>
+            <field name="phone">0987654335</field>
+            <field name="city">Patate</field>
+        </record>
+        <record id="res_customer_6" model="res.partner">
+            <field name="name">Gabriela Herrera</field>
+            <field name="email">gabriela@example.com</field>
+            <field name="phone">0987654336</field>
+            <field name="city">Patate</field>
+        </record>
+        <record id="res_customer_7" model="res.partner">
+            <field name="name">Andrés Vásquez</field>
+            <field name="email">andres@example.com</field>
+            <field name="phone">0987654337</field>
+            <field name="city">Patate</field>
+        </record>
+        <record id="res_customer_8" model="res.partner">
+            <field name="name">Marcela Soto</field>
+            <field name="email">marcela@example.com</field>
+            <field name="phone">0987654338</field>
+            <field name="city">Patate</field>
+        </record>
+        <record id="res_customer_9" model="res.partner">
+            <field name="name">Javier Moreno</field>
+            <field name="email">javier@example.com</field>
+            <field name="phone">0987654339</field>
+            <field name="city">Patate</field>
+        </record>
+        <record id="res_customer_10" model="res.partner">
+            <field name="name">Susana Aguirre</field>
+            <field name="email">susana@example.com</field>
+            <field name="phone">0987654340</field>
+            <field name="city">Patate</field>
+        </record>
+
+        <!-- Reservas de demostración -->
+        <record id="demo_reservation_1" model="table.reservation">
+            <field name="reservation_number">RES/202605/001</field>
+            <field name="partner_id" ref="res_customer_1"/>
+            <field name="table_id" ref="demo_table_1"/>
+            <field name="number_of_guests">2</field>
+            <field name="reservation_datetime">2026-05-05 19:30:00</field>
+            <field name="estimated_duration">120</field>
+            <field name="occasion">romantic</field>
+            <field name="state">confirmed</field>
+        </record>
+        <record id="demo_reservation_2" model="table.reservation">
+            <field name="reservation_number">RES/202605/002</field>
+            <field name="partner_id" ref="res_customer_2"/>
+            <field name="table_id" ref="demo_table_2"/>
+            <field name="number_of_guests">4</field>
+            <field name="reservation_datetime">2026-05-05 20:00:00</field>
+            <field name="estimated_duration">150</field>
+            <field name="occasion">business</field>
+            <field name="state">confirmed</field>
+        </record>
+        <record id="demo_reservation_3" model="table.reservation">
+            <field name="reservation_number">RES/202605/003</field>
+            <field name="partner_id" ref="res_customer_3"/>
+            <field name="table_id" ref="demo_table_3"/>
+            <field name="number_of_guests">6</field>
+            <field name="reservation_datetime">2026-05-06 18:00:00</field>
+            <field name="estimated_duration">180</field>
+            <field name="occasion">celebration</field>
+            <field name="state">pending</field>
+        </record>
+        <record id="demo_reservation_4" model="table.reservation">
+            <field name="reservation_number">RES/202605/004</field>
+            <field name="partner_id" ref="res_customer_4"/>
+            <field name="table_id" ref="demo_table_4"/>
+            <field name="number_of_guests">3</field>
+            <field name="reservation_datetime">2026-05-05 19:00:00</field>
+            <field name="estimated_duration">120</field>
+            <field name="occasion">normal</field>
+            <field name="state">completed</field>
+        </record>
+        <record id="demo_reservation_5" model="table.reservation">
+            <field name="reservation_number">RES/202605/005</field>
+            <field name="partner_id" ref="res_customer_5"/>
+            <field name="table_id" ref="demo_table_5"/>
+            <field name="number_of_guests">8</field>
+            <field name="reservation_datetime">2026-05-07 19:30:00</field>
+            <field name="estimated_duration">180</field>
+            <field name="occasion">birthday</field>
+            <field name="state">confirmed</field>
+        </record>
+        <record id="demo_reservation_6" model="table.reservation">
+            <field name="reservation_number">RES/202605/006</field>
+            <field name="partner_id" ref="res_customer_6"/>
+            <field name="table_id" ref="demo_table_1"/>
+            <field name="number_of_guests">2</field>
+            <field name="reservation_datetime">2026-05-08 20:00:00</field>
+            <field name="estimated_duration">120</field>
+            <field name="occasion">anniversary</field>
+            <field name="state">in_progress</field>
+        </record>
+        <record id="demo_reservation_7" model="table.reservation">
+            <field name="reservation_number">RES/202605/007</field>
+            <field name="partner_id" ref="res_customer_7"/>
+            <field name="table_id" ref="demo_table_2"/>
+            <field name="number_of_guests">4</field>
+            <field name="reservation_datetime">2026-05-06 19:00:00</field>
+            <field name="estimated_duration">150</field>
+            <field name="occasion">normal</field>
+            <field name="state">cancelled</field>
+        </record>
+        <record id="demo_reservation_8" model="table.reservation">
+            <field name="reservation_number">RES/202605/008</field>
+            <field name="partner_id" ref="res_customer_8"/>
+            <field name="table_id" ref="demo_table_3"/>
+            <field name="number_of_guests">5</field>
+            <field name="reservation_datetime">2026-05-09 18:30:00</field>
+            <field name="estimated_duration">180</field>
+            <field name="occasion">celebration</field>
+            <field name="state">pending</field>
+        </record>
+        <record id="demo_reservation_9" model="table.reservation">
+            <field name="reservation_number">RES/202605/009</field>
+            <field name="partner_id" ref="res_customer_9"/>
+            <field name="table_id" ref="demo_table_4"/>
+            <field name="number_of_guests">3</field>
+            <field name="reservation_datetime">2026-05-05 18:00:00</field>
+            <field name="estimated_duration">120</field>
+            <field name="occasion">normal</field>
+            <field name="state">completed</field>
+        </record>
+        <record id="demo_reservation_10" model="table.reservation">
+            <field name="reservation_number">RES/202605/010</field>
+            <field name="partner_id" ref="res_customer_10"/>
+            <field name="table_id" ref="demo_table_5"/>
+            <field name="number_of_guests">7</field>
+            <field name="reservation_datetime">2026-05-10 19:00:00</field>
+            <field name="estimated_duration">180</field>
+            <field name="occasion">birthday</field>
+            <field name="state">confirmed</field>
+        </record>
+    </data>
+</odoo>

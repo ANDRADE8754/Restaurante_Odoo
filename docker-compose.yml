@@ -1,0 +1,33 @@
+version: "3.1"
+
+services:
+  db:
+    image: postgres:15
+    container_name: proyectoDAS-db
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    restart: always
+
+  odoo:
+    image: odoo:18
+    container_name: proyectoDAS
+    depends_on:
+      - db
+    ports:
+      - "8070:8069"
+    environment:
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=odoo
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./addons:/mnt/extra-addons
+    restart: always
+
+volumes:
+  odoo-db-data:
+  odoo-web-data:

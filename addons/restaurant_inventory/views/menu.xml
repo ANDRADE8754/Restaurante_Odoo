@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menú para Inventario -->
+        <menuitem id="menu_restaurant_inventory" name="Gestión de Inventario" parent="restaurant_orders.menu_sabores_root" sequence="30"/>
+        <menuitem id="menu_ingredient_category" name="Categorías" action="action_ingredient_category" parent="menu_restaurant_inventory" sequence="10"/>
+        <menuitem id="menu_restaurant_ingredient" name="Ingredientes" action="action_restaurant_ingredient" parent="menu_restaurant_inventory" sequence="20"/>
+    </data>
+</odoo>

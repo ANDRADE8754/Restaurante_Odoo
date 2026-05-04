@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Vista de lista de mesas -->
+        <record id="view_restaurant_table_tree" model="ir.ui.view">
+            <field name="name">Mesas - Lista</field>
+            <field name="model">restaurant.table</field>
+            <field name="arch" type="xml">
+                <list string="Mesas">
+                    <field name="table_number"/>
+                    <field name="capacity"/>
+                    <field name="location"/>
+                    <field name="state" decoration-success="state == 'available'" decoration-warning="state == 'reserved'" decoration-danger="state == 'maintenance'"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Vista de formulario de mesa -->
+        <record id="view_restaurant_table_form" model="ir.ui.view">
+            <field name="name">Mesa - Formulario</field>
+            <field name="model">restaurant.table</field>
+            <field name="arch" type="xml">
+                <form string="Mesa">
+                    <sheet>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                        <div class="oe_title">
+                            <h1><field name="table_number"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="capacity"/>
+                                <field name="location"/>
+                            </group>
+                            <group>
+                                <field name="state"/>
+                                <field name="description"/>
+                            </group>
+                        </group>
+                        
+                        <field name="reservation_ids" string="Reservas">
+                            <list>
+                                <field name="reservation_number"/>
+                                <field name="partner_id"/>
+                                <field name="reservation_datetime"/>
+                                <field name="number_of_guests"/>
+                                <field name="state"/>
+                            </list>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Acción para abrir mesas -->
+        <record id="action_restaurant_table" model="ir.actions.act_window">
+            <field name="name">Mesas</field>
+            <field name="res_model">restaurant.table</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Registrar una nueva mesa
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

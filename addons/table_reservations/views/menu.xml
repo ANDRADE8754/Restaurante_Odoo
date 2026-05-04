@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menú para Mesas -->
+        <menuitem id="menu_table_management" name="Reservas y Mesas" parent="restaurant_orders.menu_sabores_root" sequence="20"/>
+        <menuitem id="menu_restaurant_table" name="Mesas" action="action_restaurant_table" parent="menu_table_management" sequence="10"/>
+        <menuitem id="menu_table_reservation" name="Reservas de Mesa" action="action_table_reservation" parent="menu_table_management" sequence="20"/>
+    </data>
+</odoo>

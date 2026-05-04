@@ -1,0 +1,26 @@
+{
+    'name': 'Gestión de Restaurante La Comanda - Inventario',
+    'version': '1.0',
+    'category': 'Restaurant',
+    'summary': 'Módulo para gestión de inventario de ingredientes',
+    'author': 'Alejandro Andrade, Kevin Carrasco, Marco Serrano, Jonathan Lozada, Juan López, Elvis Flores',
+    'license': 'LGPL-3',
+    'depends': [
+        'base',
+        'website',
+        'stock',
+        'purchase',
+        'account',
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/ingredient_views.xml',
+        'views/ingredient_category_views.xml',
+        'views/menu.xml',
+        'views/website.xml',
+        'data/demo_data.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+}

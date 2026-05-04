@@ -1,0 +1,27 @@
+{
+    'name': 'Gestión de Restaurante La Comanda - Pedidos a Domicilio',
+    'version': '1.0',
+    'category': 'Restaurant',
+    'summary': 'Módulo para pedidos a domicilio con seguimiento',
+    'author': 'Alejandro Andrade, Kevin Carrasco, Marco Serrano, Jonathan Lozada, Juan López, Elvis Flores',
+    'license': 'LGPL-3',
+    'depends': [
+        'base',
+        'website',
+        'sale',
+        'stock',
+        'delivery',
+        'account',
+        'crm',
+    ],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/restaurant_order_views.xml',
+        'views/restaurant_order_menu.xml',
+        'views/website.xml',
+        'data/demo_data.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'auto_install': False,
+}

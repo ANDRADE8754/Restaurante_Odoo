@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menú raíz -->
+        <menuitem id="menu_sabores_root" name="Casa Vieja" sequence="1"/>
+        <!-- Menú de Pedidos -->
+        <menuitem id="menu_restaurant_orders" name="Pedidos a Domicilio" action="action_restaurant_order" parent="menu_sabores_root" sequence="10"/>
+    </data>
+</odoo>

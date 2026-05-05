@@ -11,6 +11,7 @@
         'stock',
         'purchase',
         'account',
+        'restaurant_orders',
         'l10n_ec',
     ],
     'data': [

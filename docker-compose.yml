@@ -10,13 +10,70 @@ services:
       - POSTGRES_PASSWORD=odoo
     volumes:
       - odoo-db-data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: always
+
+  restore:
+    image: postgres:15
+    container_name: proyectoDAS-restore
+    user: root
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PGPASSWORD=odoo
+      - DB_NAME=odoo
+    volumes:
+      - ./backups:/backups
+      - odoo-web-data:/var/lib/odoo
+    entrypoint: ["/bin/bash", "-c"]
+    command: |
+      set -e
+
+      echo "Verificando si existe la base $$DB_NAME..."
+
+      EXISTS=$$(psql -h db -U odoo -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$$DB_NAME'")
+
+      if [ "$$EXISTS" = "1" ]; then
+        echo "La base $$DB_NAME ya existe. No se restaura."
+        exit 0
+      fi
+
+      if [ ! -f /backups/db_demo.dump ]; then
+        echo "No existe /backups/db_demo.dump. No se restaura nada."
+        exit 0
+      fi
+
+      echo "Creando base $$DB_NAME..."
+      createdb -h db -U odoo "$$DB_NAME"
+
+      echo "Restaurando base de datos..."
+      pg_restore -h db -U odoo -d "$$DB_NAME" /backups/db_demo.dump
+
+      if [ -d /backups/filestore/$$DB_NAME ]; then
+        echo "Restaurando filestore..."
+        mkdir -p /var/lib/odoo/filestore/$$DB_NAME
+        rm -rf /var/lib/odoo/filestore/$$DB_NAME/*
+        cp -a /backups/filestore/$$DB_NAME/. /var/lib/odoo/filestore/$$DB_NAME/
+        chmod -R a+rwX /var/lib/odoo/filestore/$$DB_NAME
+      else
+        echo "No existe /backups/filestore/$$DB_NAME. Se restauró solo la base."
+      fi
+
+      echo "Restore completado."
+    restart: "no"
 
   odoo:
     image: odoo:18
     container_name: proyectoDAS
     depends_on:
-      - db
+      restore:
+        condition: service_completed_successfully
     ports:
       - "8070:8069"
     environment:
@@ -26,7 +83,45 @@ services:
     volumes:
       - odoo-web-data:/var/lib/odoo
       - ./addons:/mnt/extra-addons
+      - ./backups:/backups
+      - ./scripts:/scripts
     restart: always
+
+  backup:
+    image: postgres:15
+    container_name: proyectoDAS-backup
+    user: root
+    profiles:
+      - tools
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PGPASSWORD=odoo
+      - DB_NAME=odoo
+    volumes:
+      - ./backups:/backups
+      - odoo-web-data:/var/lib/odoo
+    entrypoint: ["/bin/bash", "-c"]
+    command: |
+      set -e
+
+      echo "Creando backup de la base $$DB_NAME..."
+
+      pg_dump -h db -U odoo -d "$$DB_NAME" -F c -f /backups/db_demo.dump
+
+      echo "Copiando filestore..."
+
+      rm -rf /backups/filestore/$$DB_NAME
+      mkdir -p /backups/filestore/$$DB_NAME
+
+      if [ -d /var/lib/odoo/filestore/$$DB_NAME ]; then
+        cp -a /var/lib/odoo/filestore/$$DB_NAME/. /backups/filestore/$$DB_NAME/
+      else
+        echo "No existe filestore para $$DB_NAME."
+      fi
+
+      echo "Backup completado en ./backups"
 
 volumes:
   odoo-db-data:

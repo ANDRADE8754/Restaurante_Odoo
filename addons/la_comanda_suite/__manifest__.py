@@ -15,6 +15,8 @@
     ],
     'data': [
         'data/menu_data.xml',
+        'data/products_data.xml',
+        'data/ingredients_products.xml',
     ],
     'installable': True,
     'application': True,

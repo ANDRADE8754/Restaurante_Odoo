@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Categorias de productos -->
+        <record id="categ_entradas" model="product.category">
+            <field name="name">Entradas</field>
+        </record>
+        <record id="categ_sopas" model="product.category">
+            <field name="name">Sopas</field>
+        </record>
+        <record id="categ_platos_fuertes" model="product.category">
+            <field name="name">Platos fuertes</field>
+        </record>
+        <record id="categ_postres" model="product.category">
+            <field name="name">Postres</field>
+        </record>
+
+        <!-- Entradas -->
+        <record id="product_mote_sucio" model="product.template">
+            <field name="name">Mote sucio</field>
+            <field name="categ_id" ref="categ_entradas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">3.50</field>
+        </record>
+        <record id="product_motepillo" model="product.template">
+            <field name="name">Motepillo</field>
+            <field name="categ_id" ref="categ_entradas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">3.75</field>
+        </record>
+        <record id="product_patacones_guacamole" model="product.template">
+            <field name="name">Patacones con guacamole</field>
+            <field name="categ_id" ref="categ_entradas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">4.50</field>
+        </record>
+        <record id="product_nachos_guacamole" model="product.template">
+            <field name="name">Nachos con guacamole</field>
+            <field name="categ_id" ref="categ_entradas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">4.75</field>
+        </record>
+        <record id="product_volquetero" model="product.template">
+            <field name="name">Volquetero</field>
+            <field name="categ_id" ref="categ_entradas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">5.50</field>
+        </record>
+        <record id="product_poutine_pautine" model="product.template">
+            <field name="name">Poutine / Pautine</field>
+            <field name="categ_id" ref="categ_entradas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">5.75</field>
+        </record>
+        <record id="product_salchipapas" model="product.template">
+            <field name="name">Salchipapas</field>
+            <field name="categ_id" ref="categ_entradas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">4.50</field>
+        </record>
+
+        <!-- Sopas -->
+        <record id="product_crema_choclo" model="product.template">
+            <field name="name">Crema de choclo</field>
+            <field name="categ_id" ref="categ_sopas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">3.50</field>
+        </record>
+        <record id="product_crema_zapallo" model="product.template">
+            <field name="name">Crema de zapallo</field>
+            <field name="categ_id" ref="categ_sopas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">3.50</field>
+        </record>
+        <record id="product_crema_tomate" model="product.template">
+            <field name="name">Crema de tomate</field>
+            <field name="categ_id" ref="categ_sopas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">3.50</field>
+        </record>
+        <record id="product_sopa_ligera_pollo" model="product.template">
+            <field name="name">Sopa ligera de pollo</field>
+            <field name="categ_id" ref="categ_sopas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">4.00</field>
+        </record>
+        <record id="product_sopa_adicional_almuerzo" model="product.template">
+            <field name="name">Sopa adicional del almuerzo</field>
+            <field name="categ_id" ref="categ_sopas"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">2.50</field>
+        </record>
+
+        <!-- Platos fuertes -->
+        <record id="product_pollo_apanado" model="product.template">
+            <field name="name">Pollo apanado</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">8.50</field>
+            <field name="description_sale">filete de pollo, pan molido o apanadura, huevo, harina, ajo, sal, pimienta, aceite</field>
+        </record>
+        <record id="product_lomo_apanado" model="product.template">
+            <field name="name">Lomo apanado</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">9.50</field>
+            <field name="description_sale">filete de lomo de res, pan molido o apanadura, huevo, harina, ajo, sal, pimienta, aceite</field>
+        </record>
+        <record id="product_camarones_apanados" model="product.template">
+            <field name="name">Camarones apanados</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">11.50</field>
+            <field name="description_sale">camaron, pan molido o apanadura, huevo, harina, ajo, sal, pimienta, aceite, limon</field>
+        </record>
+        <record id="product_chaulafan" model="product.template">
+            <field name="name">Chaulafan</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">8.00</field>
+            <field name="description_sale">arroz cocido, pollo o cerdo opcional, camaron opcional, huevo, cebolla blanca, pimiento, zanahoria, arveja, salsa de soya, aceite, sal</field>
+        </record>
+        <record id="product_tallarines_salteados" model="product.template">
+            <field name="name">Tallarines salteados</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">8.00</field>
+            <field name="description_sale">tallarin, pollo o res opcional, cebolla, pimiento, zanahoria, salsa de soya, ajo, aceite, sal, pimienta</field>
+        </record>
+        <record id="product_duo_lomo_pollo" model="product.template">
+            <field name="name">Duo de lomo y pollo</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">11.50</field>
+            <field name="description_sale">lomo de res, pechuga de pollo, ajo, sal, pimienta, aceite o mantequilla, guarnicion</field>
+        </record>
+        <record id="product_mar_tierra_lomo" model="product.template">
+            <field name="name">Mar y tierra lomo</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">13.50</field>
+            <field name="description_sale">lomo de res, camarones, ajo, mantequilla, crema opcional, sal, pimienta, limon, guarnicion</field>
+        </record>
+        <record id="product_mar_tierra_pollo" model="product.template">
+            <field name="name">Mar y tierra pollo</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">12.50</field>
+            <field name="description_sale">pechuga de pollo, camarones, ajo, mantequilla, crema opcional, sal, pimienta, limon, guarnicion</field>
+        </record>
+        <record id="product_mar_tierra_chuleta" model="product.template">
+            <field name="name">Mar y tierra chuleta</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">12.50</field>
+            <field name="description_sale">chuleta de cerdo, camarones, ajo, mantequilla, crema opcional, sal, pimienta, limon, guarnicion</field>
+        </record>
+        <record id="product_chuleta_ahumada" model="product.template">
+            <field name="name">Chuleta ahumada</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">10.50</field>
+            <field name="description_sale">chuleta ahumada, ajo, sal, pimienta, aceite, salsa opcional, guarnicion</field>
+        </record>
+        <record id="product_chuleta_tradicional" model="product.template">
+            <field name="name">Chuleta tradicional</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">9.50</field>
+            <field name="description_sale">chuleta de cerdo, ajo, comino, sal, pimienta, aceite, guarnicion</field>
+        </record>
+        <record id="product_camarones_ajillo" model="product.template">
+            <field name="name">Camarones al ajillo</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">12.00</field>
+            <field name="description_sale">camaron, ajo, mantequilla, aceite, perejil o cilantro, sal, pimienta, limon</field>
+        </record>
+        <record id="product_camarones_plancha" model="product.template">
+            <field name="name">Camarones a la plancha</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">11.50</field>
+            <field name="description_sale">camaron, ajo, aceite o mantequilla, sal, pimienta, limon</field>
+        </record>
+        <record id="product_lengua_champinones" model="product.template">
+            <field name="name">Lengua con champinones</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">10.50</field>
+            <field name="description_sale">lengua de res, champinones, cebolla, ajo, crema de leche opcional, caldo de res, sal, pimienta, laurel</field>
+        </record>
+        <record id="product_pollo_plancha" model="product.template">
+            <field name="name">Pollo a la plancha</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">8.50</field>
+            <field name="description_sale">pechuga de pollo, ajo, sal, pimienta, aceite, limon opcional, guarnicion</field>
+        </record>
+        <record id="product_lomo_plancha" model="product.template">
+            <field name="name">Lomo a la plancha</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">9.50</field>
+            <field name="description_sale">lomo de res, ajo, sal, pimienta, aceite o mantequilla, guarnicion</field>
+        </record>
+        <record id="product_filete_trucha" model="product.template">
+            <field name="name">Filete de trucha</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">10.50</field>
+            <field name="description_sale">filete de trucha, ajo, sal, pimienta, limon, aceite o mantequilla, guarnicion</field>
+        </record>
+        <record id="product_filete_tilapia" model="product.template">
+            <field name="name">Filete de tilapia</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">9.50</field>
+            <field name="description_sale">filete de tilapia, ajo, sal, pimienta, limon, aceite o mantequilla, guarnicion</field>
+        </record>
+        <record id="product_trucha_entera" model="product.template">
+            <field name="name">Trucha entera</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">12.00</field>
+            <field name="description_sale">trucha entera, ajo, sal, pimienta, limon, aceite o mantequilla, guarnicion</field>
+        </record>
+        <record id="product_costillas_bbq" model="product.template">
+            <field name="name">Costillas BBQ</field>
+            <field name="categ_id" ref="categ_platos_fuertes"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">13.00</field>
+            <field name="description_sale">costillas de cerdo, salsa bbq, ajo, sal, pimienta, aceite, miel o panela opcional, guarnicion</field>
+        </record>
+
+        <!-- Postres -->
+        <record id="product_espumilla_uvilla" model="product.template">
+            <field name="name">Espumilla de uvilla</field>
+            <field name="categ_id" ref="categ_postres"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">2.50</field>
+            <field name="description_sale">claras de huevo, azucar, pulpa de uvilla, limon opcional, grageas o topping opcional</field>
+        </record>
+        <record id="product_espumilla_naranjilla" model="product.template">
+            <field name="name">Espumilla de naranjilla</field>
+            <field name="categ_id" ref="categ_postres"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">2.50</field>
+            <field name="description_sale">claras de huevo, azucar, pulpa de naranjilla, limon opcional, grageas o topping opcional</field>
+        </record>
+        <record id="product_espumilla_pina" model="product.template">
+            <field name="name">Espumilla de pina</field>
+            <field name="categ_id" ref="categ_postres"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">2.50</field>
+            <field name="description_sale">claras de huevo, azucar, pulpa o jugo de pina, limon opcional, grageas o topping opcional</field>
+        </record>
+        <record id="product_brownie" model="product.template">
+            <field name="name">Brownie</field>
+            <field name="categ_id" ref="categ_postres"/>
+            <field name="type">service</field>
+            <field name="sale_ok">True</field>
+            <field name="purchase_ok">False</field>
+            <field name="list_price">3.25</field>
+            <field name="description_sale">chocolate o cocoa, harina, azucar, huevo, mantequilla, esencia de vainilla, sal, nueces opcional</field>
+        </record>
+    </data>
+</odoo>

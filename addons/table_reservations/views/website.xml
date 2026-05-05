@@ -168,5 +168,34 @@
                 </div>
             </t>
         </template>
+
+        <!-- Menú de Navegación -->
+        <record id="menu_restaurant_reservations" model="website.menu">
+            <field name="name">Reservas de Mesa</field>
+            <field name="url">/restaurant/tables/available</field>
+            <field name="parent_id" ref="restaurant_orders.menu_restaurant_root"/>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="menu_restaurant_tables_available" model="website.menu">
+            <field name="name">Mesas Disponibles</field>
+            <field name="url">/restaurant/tables/available</field>
+            <field name="parent_id" ref="menu_restaurant_reservations"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="menu_restaurant_reservation_create" model="website.menu">
+            <field name="name">Hacer una Reserva</field>
+            <field name="url">/restaurant/reservation/create</field>
+            <field name="parent_id" ref="menu_restaurant_reservations"/>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="menu_restaurant_reservations_list" model="website.menu">
+            <field name="name">Mis Reservas</field>
+            <field name="url">/restaurant/reservations</field>
+            <field name="parent_id" ref="menu_restaurant_reservations"/>
+            <field name="sequence">30</field>
+        </record>
     </data>
 </odoo>

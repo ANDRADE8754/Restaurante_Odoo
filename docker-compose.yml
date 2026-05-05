@@ -103,26 +103,28 @@ services:
       - ./backups:/backups
       - odoo-web-data:/var/lib/odoo
     entrypoint: ["/bin/bash", "-c"]
-    command: |
-      set -e
+    command:
+      - |
+        set -e
 
-      echo "Creando backup de la base $$DB_NAME..."
+        echo "Creando backup de la base $$DB_NAME..."
 
-      pg_dump -h db -U odoo -d "$$DB_NAME" -F c -f /backups/db_demo.dump
+        pg_dump -h db -U odoo -d "$$DB_NAME" -F c -f /backups/db_demo.dump
 
-      echo "Copiando filestore..."
+        echo "Copiando filestore..."
 
-      rm -rf /backups/filestore/$$DB_NAME
-      mkdir -p /backups/filestore/$$DB_NAME
+        rm -rf /backups/filestore/$$DB_NAME
+        mkdir -p /backups/filestore/$$DB_NAME
 
-      if [ -d /var/lib/odoo/filestore/$$DB_NAME ]; then
-        cp -a /var/lib/odoo/filestore/$$DB_NAME/. /backups/filestore/$$DB_NAME/
-      else
-        echo "No existe filestore para $$DB_NAME."
-      fi
+        if [ -d /var/lib/odoo/filestore/$$DB_NAME ]; then
+          cp -a /var/lib/odoo/filestore/$$DB_NAME/. /backups/filestore/$$DB_NAME/
+        else
+          echo "No existe filestore para $$DB_NAME."
+        fi
 
-      echo "Backup completado en ./backups"
+        echo "Backup completado en ./backups"
 
+        
 volumes:
   odoo-db-data:
   odoo-web-data:

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Menú raíz del Restaurante -->
+        <record id="menu_restaurant_root" model="website.menu">
+            <field name="name">🍽️ Restaurante</field>
+            <field name="url">/restaurant/orders</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <!-- Menús Pedidos -->
+        <record id="menu_order_create" model="website.menu">
+            <field name="name">🛒 Hacer Pedido</field>
+            <field name="url">/restaurant/order/create</field>
+            <field name="parent_id" ref="menu_restaurant_root"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="menu_order_list" model="website.menu">
+            <field name="name">📋 Mis Pedidos</field>
+            <field name="url">/restaurant/orders</field>
+            <field name="parent_id" ref="menu_restaurant_root"/>
+            <field name="sequence">15</field>
+        </record>
+
+        <!-- Menús Reservas -->
+        <record id="menu_tables_available" model="website.menu">
+            <field name="name">📅 Mesas Disponibles</field>
+            <field name="url">/restaurant/tables/available</field>
+            <field name="parent_id" ref="menu_restaurant_root"/>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="menu_reservation_create" model="website.menu">
+            <field name="name">📌 Hacer Reserva</field>
+            <field name="url">/restaurant/reservation/create</field>
+            <field name="parent_id" ref="menu_restaurant_root"/>
+            <field name="sequence">25</field>
+        </record>
+
+        <record id="menu_reservations_list" model="website.menu">
+            <field name="name">📋 Mis Reservas</field>
+            <field name="url">/restaurant/reservations</field>
+            <field name="parent_id" ref="menu_restaurant_root"/>
+            <field name="sequence">30</field>
+        </record>
+
+        <!-- Menús Inventario -->
+        <record id="menu_categories" model="website.menu">
+            <field name="name">📦 Categorías</field>
+            <field name="url">/restaurant/inventory/categories</field>
+            <field name="parent_id" ref="menu_restaurant_root"/>
+            <field name="sequence">35</field>
+        </record>
+
+        <record id="menu_inventory_status" model="website.menu">
+            <field name="name">📊 Stock</field>
+            <field name="url">/restaurant/inventory/status</field>
+            <field name="parent_id" ref="menu_restaurant_root"/>
+            <field name="sequence">40</field>
+        </record>
+    </data>
+</odoo>
+

@@ -13,6 +13,9 @@
         'restaurant_inventory',
         'l10n_ec',
     ],
+    'data': [
+        'data/menu_data.xml',
+    ],
     'installable': True,
     'application': True,
     'auto_install': False,

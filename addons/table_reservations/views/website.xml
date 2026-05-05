@@ -111,7 +111,7 @@
                                     <h5 class="card-title">Estado: <span t-field="reservation.state" class="badge bg-info"/></h5>
                                     <p><strong>Mesa:</strong> <t t-esc="reservation.table_id.table_number"/></p>
                                     <p><strong>Comensales:</strong> <t t-esc="reservation.number_of_guests"/></p>
-                                    <p><strong>Fecha y Hora:</strong> <t t-field="reservation.reservation_datetime" t-options='{"widget": "datetime"}'/></p>
+                                    <p><strong>Fecha y Hora:</strong> <span t-field="reservation.reservation_datetime" t-options='{"widget": "datetime"}'/></p>
                                     <p><strong>Duración Estimada:</strong> <t t-esc="reservation.estimated_duration"/> minutos</p>
                                     <p><strong>Ocasión:</strong> <t t-field="reservation.occasion"/></p>
                                     <p><strong>Solicitudes Especiales:</strong> <t t-esc="reservation.special_requests or 'Ninguna'"/></p>
@@ -153,7 +153,7 @@
                                             <td><t t-esc="res.reservation_number"/></td>
                                             <td><t t-esc="res.table_id.table_number"/></td>
                                             <td><t t-esc="res.number_of_guests"/></td>
-                                            <td><t t-field="res.reservation_datetime" t-options='{"widget": "date"}'/></td>
+                                            <td><span t-field="res.reservation_datetime" t-options='{"widget": "date"}'/></td>
                                             <td><span t-field="res.state" class="badge bg-info"/></td>
                                             <td><a t-att-href="'/restaurant/reservation/%d' % res.id" class="btn btn-sm btn-info">Ver</a></td>
                                         </tr>
@@ -168,5 +168,34 @@
                 </div>
             </t>
         </template>
+
+        <!-- Menú de Navegación -->
+        <record id="menu_restaurant_reservations" model="website.menu">
+            <field name="name">Reservas de Mesa</field>
+            <field name="url">/restaurant/tables/available</field>
+            <field name="parent_id" ref="restaurant_orders.menu_restaurant_root"/>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="menu_restaurant_tables_available" model="website.menu">
+            <field name="name">Mesas Disponibles</field>
+            <field name="url">/restaurant/tables/available</field>
+            <field name="parent_id" ref="menu_restaurant_reservations"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="menu_restaurant_reservation_create" model="website.menu">
+            <field name="name">Hacer una Reserva</field>
+            <field name="url">/restaurant/reservation/create</field>
+            <field name="parent_id" ref="menu_restaurant_reservations"/>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="menu_restaurant_reservations_list" model="website.menu">
+            <field name="name">Mis Reservas</field>
+            <field name="url">/restaurant/reservations</field>
+            <field name="parent_id" ref="menu_restaurant_reservations"/>
+            <field name="sequence">30</field>
+        </record>
     </data>
 </odoo>

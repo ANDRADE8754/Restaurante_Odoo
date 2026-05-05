@@ -94,8 +94,8 @@
                                             <td><t t-esc="order.order_number"/></td>
                                             <td><t t-esc="order.delivery_address"/></td>
                                             <td><span t-field="order.state" class="badge bg-info"/></td>
-                                            <td>$<t t-field="order.total_amount"/></td>
-                                            <td><t t-field="order.order_date" t-options='{"widget": "date"}'/></td>
+                                            <td>$<span t-field="order.total_amount"/></td>
+                                            <td><span t-field="order.order_date" t-options='{"widget": "date"}'/></td>
                                             <td><a t-att-href="'/restaurant/order/%d' % order.id" class="btn btn-sm btn-info">Ver</a></td>
                                         </tr>
                                     </tbody>
@@ -109,5 +109,27 @@
                 </div>
             </t>
         </template>
+
+        <!-- Menú de Navegación -->
+        <record id="menu_restaurant_root" model="website.menu">
+            <field name="name">🍽️ Restaurante</field>
+            <field name="url">/restaurant/orders</field>
+            <field name="parent_id" ref="website.menu_homepage"/>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="menu_restaurant_orders_create" model="website.menu">
+            <field name="name">Hacer un Pedido</field>
+            <field name="url">/restaurant/order/create</field>
+            <field name="parent_id" ref="menu_restaurant_root"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="menu_restaurant_orders_list" model="website.menu">
+            <field name="name">Mis Pedidos</field>
+            <field name="url">/restaurant/orders</field>
+            <field name="parent_id" ref="menu_restaurant_root"/>
+            <field name="sequence">20</field>
+        </record>
     </data>
 </odoo>

@@ -308,5 +308,27 @@
                 </div>
             </t>
         </template>
+
+        <!-- Menú de Navegación -->
+        <record id="menu_restaurant_inventory" model="website.menu">
+            <field name="name">📦 Inventario</field>
+            <field name="url">/restaurant/inventory/categories</field>
+            <field name="parent_id" ref="restaurant_orders.menu_restaurant_root"/>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="menu_inventory_categories" model="website.menu">
+            <field name="name">Categorías de Ingredientes</field>
+            <field name="url">/restaurant/inventory/categories</field>
+            <field name="parent_id" ref="menu_restaurant_inventory"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="menu_inventory_status" model="website.menu">
+            <field name="name">Estado del Inventario</field>
+            <field name="url">/restaurant/inventory/status</field>
+            <field name="parent_id" ref="menu_restaurant_inventory"/>
+            <field name="sequence">20</field>
+        </record>
     </data>
 </odoo>

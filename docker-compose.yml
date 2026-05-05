@@ -1,5 +1,3 @@
-version: "3.1"
-
 services:
   db:
     image: postgres:15
@@ -8,6 +6,11 @@ services:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=odoo
       - POSTGRES_PASSWORD=odoo
+    command: >
+      postgres
+      -c fsync=off
+      -c synchronous_commit=off
+      -c full_page_writes=off
     volumes:
       - odoo-db-data:/var/lib/postgresql/data
       - ./backups:/backups
@@ -32,40 +35,37 @@ services:
       - ./backups:/backups
       - odoo-web-data:/var/lib/odoo
     entrypoint: ["/bin/bash", "-c"]
-    command: |
-      set -e
+    command:
+      - |
+        set -e
 
-      echo "Verificando si existe la base $$DB_NAME..."
+        echo "Verificando backup..."
 
-      EXISTS=$$(psql -h db -U odoo -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$$DB_NAME'")
+        if [ ! -f /backups/db_demo.dump ]; then
+          echo "ERROR: No existe /backups/db_demo.dump"
+          exit 1
+        fi
 
-      if [ "$$EXISTS" = "1" ]; then
-        echo "La base $$DB_NAME ya existe. No se restaura."
-        exit 0
-      fi
+        echo "Eliminando base previa si existe..."
+        dropdb -h db -U odoo --if-exists "$$DB_NAME"
 
-      if [ ! -f /backups/db_demo.dump ]; then
-        echo "No existe /backups/db_demo.dump. No se restaura nada."
-        exit 0
-      fi
+        echo "Creando base $$DB_NAME..."
+        createdb -h db -U odoo "$$DB_NAME"
 
-      echo "Creando base $$DB_NAME..."
-      createdb -h db -U odoo "$$DB_NAME"
+        echo "Restaurando base de datos..."
+        pg_restore -h db -U odoo -d "$$DB_NAME" /backups/db_demo.dump
 
-      echo "Restaurando base de datos..."
-      pg_restore -h db -U odoo -d "$$DB_NAME" /backups/db_demo.dump
+        if [ -d /backups/filestore/$$DB_NAME ]; then
+          echo "Restaurando filestore..."
+          rm -rf /var/lib/odoo/filestore/$$DB_NAME
+          mkdir -p /var/lib/odoo/filestore/$$DB_NAME
+          cp -a /backups/filestore/$$DB_NAME/. /var/lib/odoo/filestore/$$DB_NAME/
+          chmod -R a+rwX /var/lib/odoo/filestore/$$DB_NAME
+        else
+          echo "ADVERTENCIA: No existe /backups/filestore/$$DB_NAME"
+        fi
 
-      if [ -d /backups/filestore/$$DB_NAME ]; then
-        echo "Restaurando filestore..."
-        mkdir -p /var/lib/odoo/filestore/$$DB_NAME
-        rm -rf /var/lib/odoo/filestore/$$DB_NAME/*
-        cp -a /backups/filestore/$$DB_NAME/. /var/lib/odoo/filestore/$$DB_NAME/
-        chmod -R a+rwX /var/lib/odoo/filestore/$$DB_NAME
-      else
-        echo "No existe /backups/filestore/$$DB_NAME. Se restauró solo la base."
-      fi
-
-      echo "Restore completado."
+        echo "Restore completado."
     restart: "no"
 
   odoo:
@@ -124,7 +124,6 @@ services:
 
         echo "Backup completado en ./backups"
 
-        
 volumes:
   odoo-db-data:
   odoo-web-data:

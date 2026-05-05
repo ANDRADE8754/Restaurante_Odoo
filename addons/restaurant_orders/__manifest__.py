@@ -13,6 +13,7 @@
         'delivery',
         'account',
         'crm',
+        'l10n_ec',
     ],
     'data': [
         'security/ir.model.access.csv',

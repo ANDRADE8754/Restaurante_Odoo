@@ -75,7 +75,7 @@ services:
       restore:
         condition: service_completed_successfully
     ports:
-      - "8070:8069"
+      - "8071:8069"
     environment:
       - HOST=db
       - USER=odoo

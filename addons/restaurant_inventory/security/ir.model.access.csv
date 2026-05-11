@@ -1,4 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_ingredient_category_user,ingredient.category user,model_ingredient_category,base.group_user,1,1,1,1
-access_restaurant_ingredient_user,restaurant.ingredient user,model_restaurant_ingredient,base.group_user,1,1,1,1
-access_restaurant_stock_movement_user,restaurant.stock.movement user,model_restaurant_stock_movement,base.group_user,1,1,1,1

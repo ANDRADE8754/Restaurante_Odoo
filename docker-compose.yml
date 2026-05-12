@@ -55,6 +55,9 @@ services:
         echo "Restaurando base de datos..."
         pg_restore -h db -U odoo -d "$$DB_NAME" /backups/db_demo.dump
 
+        echo "Limpiando assets web cacheados (regenerarán al primer request)..."
+        psql -h db -U odoo -d "$$DB_NAME" -c "DELETE FROM ir_attachment WHERE res_model='ir.ui.view' AND name LIKE '%assets%'; DELETE FROM ir_attachment WHERE url LIKE '/web/assets/%';"
+
         if [ -d /backups/filestore/$$DB_NAME ]; then
           echo "Restaurando filestore..."
           rm -rf /var/lib/odoo/filestore/$$DB_NAME

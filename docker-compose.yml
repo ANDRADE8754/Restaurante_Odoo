@@ -64,6 +64,20 @@ services:
           mkdir -p /var/lib/odoo/filestore/$$DB_NAME
           cp -a /backups/filestore/$$DB_NAME/. /var/lib/odoo/filestore/$$DB_NAME/
           chmod -R a+rwX /var/lib/odoo/filestore/$$DB_NAME
+
+          echo "Detectando y archivando huérfanos del filestore..."
+          FS_DIR="/var/lib/odoo/filestore/$$DB_NAME"
+          mkdir -p "$$FS_DIR/_orphans_backup"
+          psql -h db -U odoo -d "$$DB_NAME" -At -c "SELECT store_fname FROM ir_attachment WHERE store_fname IS NOT NULL" | sort -u > /tmp/expected.txt
+          ( cd "$$FS_DIR" && find . -type f -not -path './_orphans_backup/*' -printf '%P\n' ) | sort -u > /tmp/actual.txt
+          comm -23 /tmp/actual.txt /tmp/expected.txt > /tmp/orphans.txt
+          ORPHAN_COUNT=$$(wc -l < /tmp/orphans.txt)
+          echo "Huérfanos encontrados: $$ORPHAN_COUNT"
+          while IFS= read -r f; do
+            [ -z "$$f" ] && continue
+            mkdir -p "$$FS_DIR/_orphans_backup/$$(dirname "$$f")"
+            mv "$$FS_DIR/$$f" "$$FS_DIR/_orphans_backup/$$f" || true
+          done < /tmp/orphans.txt
         else
           echo "ADVERTENCIA: No existe /backups/filestore/$$DB_NAME"
         fi
@@ -110,17 +124,32 @@ services:
       - |
         set -e
 
-        echo "Creando backup de la base $$DB_NAME..."
+        echo "Limpiando assets cacheados en la BD antes del dump..."
+        psql -h db -U odoo -d "$$DB_NAME" -c "DELETE FROM ir_attachment WHERE url LIKE '/web/assets/%' OR url LIKE '/web/content/%-web.assets_%' OR name LIKE 'web.assets_%' OR (res_model = 'ir.ui.view' AND name ILIKE '%assets%');"
 
+        echo "Creando backup de la base $$DB_NAME..."
         pg_dump -h db -U odoo -d "$$DB_NAME" -F c -f /backups/db_demo.dump
 
         echo "Copiando filestore..."
-
         rm -rf /backups/filestore/$$DB_NAME
         mkdir -p /backups/filestore/$$DB_NAME
 
         if [ -d /var/lib/odoo/filestore/$$DB_NAME ]; then
           cp -a /var/lib/odoo/filestore/$$DB_NAME/. /backups/filestore/$$DB_NAME/
+
+          echo "Filtrando huérfanos del filestore en el backup..."
+          BK_DIR="/backups/filestore/$$DB_NAME"
+          rm -rf "$$BK_DIR/_orphans_backup"
+          psql -h db -U odoo -d "$$DB_NAME" -At -c "SELECT store_fname FROM ir_attachment WHERE store_fname IS NOT NULL" | sort -u > /tmp/expected.txt
+          ( cd "$$BK_DIR" && find . -type f -printf '%P\n' ) | sort -u > /tmp/actual.txt
+          comm -23 /tmp/actual.txt /tmp/expected.txt > /tmp/orphans.txt
+          ORPHAN_COUNT=$$(wc -l < /tmp/orphans.txt)
+          echo "Huérfanos eliminados del backup: $$ORPHAN_COUNT"
+          while IFS= read -r f; do
+            [ -z "$$f" ] && continue
+            rm -f "$$BK_DIR/$$f"
+          done < /tmp/orphans.txt
+          find "$$BK_DIR" -type d -empty -delete 2>/dev/null || true
         else
           echo "No existe filestore para $$DB_NAME."
         fi

@@ -1,0 +1,32 @@
+{
+    "name": "Gestión Personalizada de Restaurante",
+    "version": "18.0.1.0.0",
+    "category": "Services/Restaurant",
+    "summary": "Gestión backend de mesas, reservas y pedidos a domicilio para restaurante.",
+    "author": "Proyecto Académico",
+    "license": "LGPL-3",
+    "depends": [
+        "base",
+        "mail",
+        "product",
+        "contacts",
+        "point_of_sale",
+        "account",
+        "crm",
+        "website",
+    ],
+    "data": [
+        "security/ir.model.access.csv",
+        "data/sequence_data.xml",
+        "views/restaurant_table_views.xml",
+        "views/table_reservation_views.xml",
+        "views/delivery_order_views.xml",
+        "views/menu.xml",
+    ],
+    "demo": [
+        "data/demo_data.xml",
+    ],
+    "installable": True,
+    "application": True,
+    "auto_install": False,
+}

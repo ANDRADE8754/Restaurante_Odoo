@@ -409,3 +409,7 @@ docker compose up -d
 ```
 
 O borrar manualmente los volúmenes específicos del proyecto.
+
+```bash
+docker compose exec odoo odoo -d odoo -u restaurant_custom_management --stop-after-init --no-http --db_host=db --db_user=odoo --db_password=odoo
+```

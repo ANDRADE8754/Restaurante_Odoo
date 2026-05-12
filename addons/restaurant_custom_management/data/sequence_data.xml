@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_table_reservation" model="ir.sequence">
+        <field name="name">Reservas de Restaurante</field>
+        <field name="code">restaurant.table.reservation</field>
+        <field name="prefix">RES/</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+    </record>
+
+    <record id="seq_delivery_order" model="ir.sequence">
+        <field name="name">Pedidos a Domicilio</field>
+        <field name="code">restaurant.delivery.order</field>
+        <field name="prefix">DOM/</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+    </record>
+</odoo>

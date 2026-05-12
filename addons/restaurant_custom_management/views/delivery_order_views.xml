@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_delivery_order_list" model="ir.ui.view">
+        <field name="name">restaurant.delivery.order.list</field>
+        <field name="model">restaurant.delivery.order</field>
+        <field name="arch" type="xml">
+            <list string="Pedidos a domicilio">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="order_datetime"/>
+                <field name="estimated_delivery_datetime"/>
+                <field name="delivery_user_id"/>
+                <field name="amount_total"/>
+                <field name="payment_method"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_delivery_order_form" model="ir.ui.view">
+        <field name="name">restaurant.delivery.order.form</field>
+        <field name="model">restaurant.delivery.order</field>
+        <field name="arch" type="xml">
+            <form string="Pedido a domicilio">
+                <header>
+                    <button
+                        name="action_confirm"
+                        string="Confirmar"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'draft'"/>
+                    <button
+                        name="action_prepare"
+                        string="En preparación"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'confirmed'"/>
+                    <button
+                        name="action_send"
+                        string="En camino"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'preparing'"/>
+                    <button
+                        name="action_deliver"
+                        string="Entregado"
+                        type="object"
+                        class="btn-primary"
+                        invisible="state != 'on_the_way'"/>
+                    <button
+                        name="action_cancel"
+                        string="Cancelar"
+                        type="object"
+                        invisible="state in ['delivered', 'cancelled']"/>
+                    <button
+                        name="action_reset_to_draft"
+                        string="Volver a borrador"
+                        type="object"
+                        invisible="state == 'draft'"/>
+                    <field
+                        name="state"
+                        widget="statusbar"
+                        statusbar_visible="draft,confirmed,preparing,on_the_way,delivered"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="partner_id"/>
+                            <field name="phone"/>
+                            <field name="email"/>
+                            <field name="delivery_address"/>
+                        </group>
+                        <group>
+                            <field name="order_datetime"/>
+                            <field name="estimated_delivery_datetime"/>
+                            <field name="delivery_user_id"/>
+                            <field name="responsible_id"/>
+                            <field name="payment_method"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Productos">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="name"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="price_subtotal"/>
+                                    <field name="kitchen_note"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer">
+                                <field name="currency_id" invisible="1"/>
+                                <field name="amount_untaxed"/>
+                                <field name="delivery_fee"/>
+                                <field name="amount_total"/>
+                            </group>
+                        </page>
+                        <page string="Relaciones">
+                            <group>
+                                <field name="pos_order_id"/>
+                                <field name="invoice_id"/>
+                            </group>
+                        </page>
+                        <page string="Notas">
+                            <field name="notes"/>
+                            <field name="kitchen_notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_delivery_order_search" model="ir.ui.view">
+        <field name="name">restaurant.delivery.order.search</field>
+        <field name="model">restaurant.delivery.order</field>
+        <field name="arch" type="xml">
+            <search string="Buscar pedidos a domicilio">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="delivery_user_id"/>
+                <filter
+                    name="draft"
+                    string="Borrador"
+                    domain="[('state', '=', 'draft')]"/>
+                <filter
+                    name="confirmed"
+                    string="Confirmado"
+                    domain="[('state', '=', 'confirmed')]"/>
+                <filter
+                    name="preparing"
+                    string="En preparación"
+                    domain="[('state', '=', 'preparing')]"/>
+                <filter
+                    name="on_the_way"
+                    string="En camino"
+                    domain="[('state', '=', 'on_the_way')]"/>
+                <filter
+                    name="delivered"
+                    string="Entregado"
+                    domain="[('state', '=', 'delivered')]"/>
+                <filter
+                    name="cancelled"
+                    string="Cancelado"
+                    domain="[('state', '=', 'cancelled')]"/>
+                <filter
+                    name="today"
+                    string="Hoy"
+                    domain="[
+                        ('order_datetime', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
+                        ('order_datetime', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))
+                    ]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter
+                        name="group_by_state"
+                        string="Estado"
+                        context="{'group_by': 'state'}"/>
+                    <filter
+                        name="group_by_delivery_user"
+                        string="Repartidor"
+                        context="{'group_by': 'delivery_user_id'}"/>
+                    <filter
+                        name="group_by_payment_method"
+                        string="Método de pago"
+                        context="{'group_by': 'payment_method'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_restaurant_delivery_order" model="ir.actions.act_window">
+        <field name="name">Pedidos a domicilio</field>
+        <field name="res_model">restaurant.delivery.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_delivery_order_search"/>
+    </record>
+</odoo>

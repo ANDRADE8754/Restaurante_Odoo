@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="menu_page" name="Casa Vieja Menu Page">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 mb-0">Menú Casa Vieja</h1>
+                    <t t-set="session_cart" t-value="request.session.get('cart') or {}"/>
+                    <t t-set="cart_count" t-value="len(session_cart)"/>
+                    <a href="/casavieja/carrito" class="btn btn-outline-primary">
+                        Carrito
+                        <span class="badge bg-primary ms-2" t-esc="int(cart_count)"/>
+                    </a>
+                </div>
+
+                <div class="row g-4">
+                    <t t-foreach="products" t-as="product">
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <div class="card h-100 shadow-sm">
+                                <t t-if="product.image_1920">
+                                    <img t-att-src="'/web/image/product.template/%s/image_1920' % product.id"
+                                         t-att-alt="product.name"
+                                         class="card-img-top"/>
+                                </t>
+                                <div class="card-body d-flex flex-column">
+                                    <h2 class="h6 card-title mb-2" t-esc="product.name"/>
+                                    <p class="mb-3 text-muted">
+                                        <span t-esc="product.list_price"
+                                              t-options='{"widget": "monetary", "display_currency": product.currency_id}'/>
+                                    </p>
+                                    <form action="/casavieja/carrito/agregar" method="post" class="mt-auto">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        <input type="hidden" name="product_id" t-att-value="product.product_variant_id.id"/>
+                                        <input type="hidden" name="quantity" value="1"/>
+                                        <button type="submit" class="btn btn-primary w-100">Agregar al carrito</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="cart_page" name="Casa Vieja Cart Page">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <h1 class="h3 mb-4">Mi carrito</h1>
+
+                <t t-if="not cart_items">
+                    <div class="alert alert-info">
+                        Tu carrito está vacío.
+                    </div>
+                    <a href="/casavieja/menu" class="btn btn-primary">Ir al menú</a>
+                </t>
+
+                <t t-if="cart_items">
+                    <form action="/casavieja/checkout" method="post">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <div class="table-responsive mb-4">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th style="width: 140px;">Cantidad</th>
+                                        <th>Precio unitario</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="cart_items" t-as="item">
+                                        <tr>
+                                            <td t-esc="item['product'].display_name"/>
+                                            <td>
+                                                <input type="number"
+                                                       min="1"
+                                                       step="1"
+                                                       class="form-control"
+                                                       t-att-name="'qty_%s' % item['product'].id"
+                                                       t-att-value="int(item['quantity'])"/>
+                                            </td>
+                                            <td>
+                                                <span t-esc="item['price_unit']"
+                                                      t-options='{"widget": "monetary", "display_currency": item["product"].currency_id}'/>
+                                            </td>
+                                            <td>
+                                                <span t-esc="item['subtotal']"
+                                                      t-options='{"widget": "monetary", "display_currency": item["product"].currency_id}'/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-12 col-lg-7">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h2 class="h6 mb-3">Datos de entrega</h2>
+                                        <div class="mb-3">
+                                            <label class="form-label" for="delivery_address">Dirección</label>
+                                            <textarea id="delivery_address"
+                                                      name="delivery_address"
+                                                      class="form-control"
+                                                      rows="3"><t t-esc="request.env['restaurant.delivery.order']._get_partner_delivery_address(request.env.user.partner_id)"/></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="form-label" for="payment_method">Método de pago</label>
+                                            <select id="payment_method" name="payment_method" class="form-select">
+                                                <option value="cash">Efectivo</option>
+                                                <option value="transfer">Transferencia</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-lg-5">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h2 class="h6 mb-3">Resumen</h2>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Subtotal productos</span>
+                                            <strong t-esc="subtotal"
+                                                    t-options='{"widget": "monetary", "display_currency": request.env.company.currency_id}'/>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Costo de entrega</span>
+                                            <strong t-esc="delivery_fee"
+                                                    t-options='{"widget": "monetary", "display_currency": request.env.company.currency_id}'/>
+                                        </div>
+                                        <hr/>
+                                        <div class="d-flex justify-content-between mb-4">
+                                            <span>Total</span>
+                                            <strong t-esc="amount_total"
+                                                    t-options='{"widget": "monetary", "display_currency": request.env.company.currency_id}'/>
+                                        </div>
+                                        <div class="d-grid gap-2">
+                                            <a href="/casavieja/menu" class="btn btn-outline-secondary">Seguir comprando</a>
+                                            <button type="submit" class="btn btn-primary">Confirmar pedido</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="my_orders_page" name="Casa Vieja My Orders Page">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <h1 class="h3 mb-4">Mis pedidos</h1>
+
+                <t t-if="not orders">
+                    <div class="alert alert-info mb-0">Aún no tienes pedidos registrados.</div>
+                </t>
+
+                <t t-if="orders">
+                    <div class="list-group">
+                        <t t-foreach="orders" t-as="order">
+                            <a t-att-href="'/casavieja/mis-pedidos/%s' % order.id"
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                    <div>
+                                        <div class="fw-semibold" t-esc="order.name"/>
+                                        <small class="text-muted" t-esc="order.order_datetime"/>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <t t-set="badge_class"
+                                           t-value="
+                                               'bg-secondary' if order.state == 'draft'
+                                               else 'bg-primary' if order.state == 'confirmed'
+                                               else 'bg-info text-dark' if order.state == 'preparing'
+                                               else 'bg-warning text-dark' if order.state == 'on_the_way'
+                                               else 'bg-success' if order.state == 'delivered'
+                                               else 'bg-danger'
+                                           "/>
+                                        <t t-set="state_label" t-value="dict(order._fields['state'].selection).get(order.state)"/>
+                                        <span class="badge" t-att-class="'badge %s' % badge_class" t-esc="state_label"/>
+                                        <strong t-esc="order.amount_total"
+                                                t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                                    </div>
+                                </div>
+                            </a>
+                        </t>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="order_detail_page" name="Casa Vieja Order Detail Page">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="h3 mb-0" t-esc="order.name"/>
+                    <a href="/casavieja/mis-pedidos" class="btn btn-outline-secondary">Volver</a>
+                </div>
+
+                <div id="order-status" class="mb-4" t-att-data-order-id="order.id">
+                    <span class="badge fs-6" t-att-class="'badge fs-6 %s' % badge_class" t-esc="state_label"/>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <strong>Fecha:</strong>
+                                <span t-esc="order.order_datetime"/>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <strong>Dirección:</strong>
+                                <span t-esc="order.delivery_address"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-4">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio unitario</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="order.line_ids" t-as="line">
+                                <tr>
+                                    <td t-esc="line.product_id.display_name"/>
+                                    <td t-esc="line.quantity"/>
+                                    <td t-esc="line.price_unit"
+                                        t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                                    <td t-esc="line.price_subtotal"
+                                        t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal productos</span>
+                            <strong t-esc="order.amount_untaxed"
+                                    t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Costo de entrega</span>
+                            <strong t-esc="order.delivery_fee"
+                                    t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                        </div>
+                        <hr/>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Total</span>
+                            <strong t-esc="order.amount_total"
+                                    t-options='{"widget": "monetary", "display_currency": order.currency_id}'/>
+                        </div>
+                        <t t-if="order.notes">
+                            <hr/>
+                            <div>
+                                <strong>Notas:</strong>
+                                <p class="mb-0 mt-1" t-esc="order.notes"/>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+            <script type="text/javascript" src="/restaurant_delivery_orders/static/src/js/order_status.js"></script>
+        </t>
+    </template>
+</odoo>

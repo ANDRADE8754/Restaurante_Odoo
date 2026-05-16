@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_delivery_claim_form" name="Portal Delivery Claim Form">
+        <t t-call="portal.portal_layout">
+            <div class="container py-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h2 class="mb-0">Reportar un problema - <t t-esc="sale_order.name"/></h2>
+                    <a t-attf-href="/my/orders/{{ sale_order.id }}" class="btn btn-outline-secondary">
+                        Volver al pedido
+                    </a>
+                </div>
+
+                <div t-if="request.params.get('claim_error') == 'required'" class="alert alert-danger">
+                    Debes completar el tipo de reclamo y la descripcion del problema.
+                </div>
+                <div t-if="request.params.get('claim_error') == 'duplicate'" class="alert alert-warning">
+                    Ya existe un reclamo similar o el reclamo no cumple las validaciones.
+                </div>
+
+                <form t-att-action="'/my/orders/%s/claim' % sale_order.id" method="post" class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de reclamo</label>
+                            <select class="form-select" name="claim_type" required="required">
+                                <option value="">Selecciona una opcion</option>
+                                <option value="wrong_item">Plato equivocado</option>
+                                <option value="missing_item">Plato faltante</option>
+                                <option value="cold_food">Comida fria</option>
+                                <option value="damaged">Pedido dañado</option>
+                                <option value="late_delivery">Entrega tardia</option>
+                                <option value="wrong_quantity">Cantidad incorrecta</option>
+                                <option value="other">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Productos afectados</label>
+                            <div class="row g-2">
+                                <t t-foreach="delivery_order.line_ids.filtered('product_id')" t-as="line">
+                                    <div class="col-12 col-md-6">
+                                        <div class="form-check border rounded p-2">
+                                            <input class="form-check-input" type="checkbox"
+                                                   name="affected_line_ids"
+                                                   t-att-id="'claim_line_%s' % line.id"
+                                                   t-att-value="line.id"/>
+                                            <label class="form-check-label" t-att-for="'claim_line_%s' % line.id">
+                                                <t t-esc="line.product_id.display_name"/> (x<t t-esc="line.quantity"/>)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Descripcion del problema</label>
+                            <textarea name="description" class="form-control" rows="4" required="required"
+                                      placeholder="Describe lo ocurrido para que podamos ayudarte"/>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger">
+                            Enviar reclamo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_my_claims" name="Portal My Claims">
+        <t t-call="portal.portal_layout">
+            <div class="container py-4">
+                <h2 class="mb-3">Mis reclamos</h2>
+                <div t-if="not claims" class="alert alert-info">
+                    No tienes reclamos registrados.
+                </div>
+                <div t-if="claims" class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Referencia</th>
+                                <th>Pedido</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="claims" t-as="claim">
+                                <td>
+                                    <a t-attf-href="/my/claims/{{ claim.id }}">
+                                        <t t-esc="claim.name"/>
+                                    </a>
+                                </td>
+                                <td><t t-esc="claim.delivery_order_id.name"/></td>
+                                <td><t t-esc="dict(claim._fields['claim_type'].selection).get(claim.claim_type)"/></td>
+                                <td><t t-esc="dict(claim._fields['state'].selection).get(claim.state)"/></td>
+                                <td><span t-field="claim.claim_date"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_claim_detail" name="Portal Claim Detail">
+        <t t-call="portal.portal_layout">
+            <div class="container py-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h2 class="mb-0">Reclamo <t t-esc="claim.name"/></h2>
+                    <a href="/my/claims" class="btn btn-outline-secondary">Volver a mis reclamos</a>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <strong>Pedido:</strong>
+                                <div><t t-esc="claim.delivery_order_id.name"/></div>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Estado:</strong>
+                                <div><t t-esc="dict(claim._fields['state'].selection).get(claim.state)"/></div>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Tipo:</strong>
+                                <div><t t-esc="dict(claim._fields['claim_type'].selection).get(claim.claim_type)"/></div>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Fecha:</strong>
+                                <div><span t-field="claim.claim_date"/></div>
+                            </div>
+                            <div class="col-12">
+                                <strong>Descripcion:</strong>
+                                <div><t t-esc="claim.description"/></div>
+                            </div>
+                            <div class="col-12" t-if="claim.resolution_notes">
+                                <strong>Resolucion:</strong>
+                                <div>
+                                    <t t-if="claim.resolution_type">
+                                        <t t-esc="dict(claim._fields['resolution_type'].selection).get(claim.resolution_type)"/> -
+                                    </t>
+                                    <t t-esc="claim.resolution_notes"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_my_home_claim_entry"
+              inherit_id="sale.portal_my_home_sale"
+              name="Portal Home Claims Entry">
+        <xpath expr="//div[@id='portal_client_category']" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Mis reclamos</t>
+                <t t-set="url" t-value="'/my/claims'"/>
+                <t t-set="text">Consulta el estado de tus reclamos delivery</t>
+            </t>
+        </xpath>
+    </template>
+</odoo>

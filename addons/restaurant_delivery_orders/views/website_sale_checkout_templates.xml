@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template
+        id="website_sale_address_delivery_fields"
+        inherit_id="website_sale.address"
+        name="Website Sale Address Delivery Fields"
+    >
+        <xpath expr="//form[contains(@action, '/shop/address/submit')]/div[hasclass('row')]" position="inside">
+            <div t-if="delivery_closed" class="col-12 mb-3">
+                <div class="alert alert-warning" role="alert">
+                    ⏰ <t t-esc="delivery_closed_message"/>. Puedes armar tu carrito y completar el pedido cuando abramos.
+                </div>
+            </div>
+            <div class="w-100"/>
+            <div class="col-lg-12 mb-2">
+                <label class="col-form-label" for="cv_delivery_address">Dirección de entrega</label>
+                <textarea id="cv_delivery_address"
+                          name="cv_delivery_address"
+                          class="form-control"
+                          rows="3"><t t-esc="website_sale_order.website_delivery_address or ''"/></textarea>
+            </div>
+            <t t-set="cv_delivery_zones" t-value="request.env['restaurant.delivery.zone'].sudo().search([('active', '=', True)], order='name asc')"/>
+            <div class="col-lg-6 mb-2">
+                <label class="col-form-label" for="cv_delivery_zone_id">Zona de entrega</label>
+                <select id="cv_delivery_zone_id" name="cv_delivery_zone_id" class="form-select">
+                    <option value="">Selecciona una zona</option>
+                    <t t-foreach="cv_delivery_zones" t-as="zone">
+                        <option t-att-value="zone.id"
+                                t-att-selected="website_sale_order.website_delivery_zone_id.id == zone.id">
+                            <t t-esc="zone.name"/> - $<t t-esc="'%.2f' % zone.delivery_fee"/>
+                        </option>
+                    </t>
+                </select>
+            </div>
+            <div class="col-lg-6 mb-2">
+                <label class="col-form-label" for="cv_payment_method">Método de pago</label>
+                <select id="cv_payment_method" name="cv_payment_method" class="form-select">
+                    <option value="cash" t-att-selected="website_sale_order.website_payment_method == 'cash'">Efectivo</option>
+                    <option value="transfer" t-att-selected="website_sale_order.website_payment_method == 'transfer'">Transferencia</option>
+                </select>
+            </div>
+            <div class="col-lg-12 mb-2">
+                <label class="col-form-label label-optional" for="cv_delivery_note">Nota de entrega</label>
+                <textarea id="cv_delivery_note"
+                          name="cv_delivery_note"
+                          class="form-control"
+                          rows="2"><t t-esc="website_sale_order.website_delivery_note or ''"/></textarea>
+            </div>
+        </xpath>
+    </template>
+
+    <template
+        id="website_sale_product_login_cta"
+        inherit_id="website_sale.product"
+        name="Website Sale Product Login CTA"
+    >
+        <xpath expr="//form[contains(@action, '/shop/cart/update')]" position="attributes">
+            <attribute name="t-if">product._is_add_to_cart_possible() and not request.env.user._is_public()</attribute>
+        </xpath>
+        <xpath expr="//form[contains(@action, '/shop/cart/update')]" position="after">
+            <a t-if="product._is_add_to_cart_possible() and request.env.user._is_public()"
+               href="/web/login?redirect=/shop"
+               class="btn btn-primary btn-lg">
+                Inicia sesi&#243;n para comprar
+            </a>
+        </xpath>
+    </template>
+
+    <template
+        id="website_sale_total_products_subtotal"
+        inherit_id="website_sale.total"
+        name="Website Sale Total Products Subtotal"
+    >
+        <xpath expr="//tr[@id='order_total_untaxed']/td[last()]/span" position="replace">
+            <span t-out="website_sale_order._get_website_products_subtotal()"
+                  class="monetary_field"
+                  style="white-space: nowrap;"
+                  t-options="{'widget': 'monetary', 'display_currency': website_sale_order.currency_id}"/>
+        </xpath>
+    </template>
+</odoo>

@@ -9,9 +9,14 @@
                 <field name="partner_id"/>
                 <field name="order_datetime"/>
                 <field name="estimated_delivery_datetime"/>
+                <field name="delivery_zone_id" optional="show"/>
                 <field name="delivery_user_id"/>
+                <field name="delivery_user_active_count" optional="hide"/>
                 <field name="amount_total"/>
-                <field name="payment_method"/>
+                <field name="average_rating" optional="show"/>
+                <field name="source_channel"/>
+                <field name="sale_order_ref"/>
+                <field name="payment_method" widget="selection"/>
                 <field name="state"/>
             </list>
         </field>
@@ -24,21 +29,48 @@
             <form string="Pedido a domicilio">
                 <header>
                     <button name="action_confirm" string="Confirmar" type="object"
-                            class="btn-primary" invisible="state != 'draft'"/>
+                            class="btn-primary" invisible="state != 'draft'"
+                            groups="restaurant_casa_vieja_base.group_restaurant_administrador,restaurant_casa_vieja_base.group_restaurant_administracion,restaurant_casa_vieja_base.group_restaurant_mesero"/>
                     <button name="action_prepare" string="En preparación" type="object"
-                            class="btn-primary" invisible="state != 'confirmed'"/>
+                            class="btn-primary" invisible="state != 'confirmed'"
+                            groups="restaurant_casa_vieja_base.group_restaurant_administrador,restaurant_casa_vieja_base.group_restaurant_administracion,restaurant_casa_vieja_base.group_restaurant_mesero,restaurant_casa_vieja_base.group_restaurant_cocinero"/>
                     <button name="action_send" string="En camino" type="object"
-                            class="btn-primary" invisible="state != 'preparing'"/>
+                            class="btn-primary" invisible="state != 'preparing'"
+                            groups="restaurant_casa_vieja_base.group_restaurant_administrador,restaurant_casa_vieja_base.group_restaurant_administracion,restaurant_casa_vieja_base.group_restaurant_mesero,restaurant_casa_vieja_base.group_restaurant_cocinero"/>
                     <button name="action_deliver" string="Entregado" type="object"
-                            class="btn-primary" invisible="state != 'on_the_way'"/>
+                            class="btn-primary" invisible="state != 'on_the_way'"
+                            groups="restaurant_casa_vieja_base.group_restaurant_administrador,restaurant_casa_vieja_base.group_restaurant_administracion,restaurant_casa_vieja_base.group_restaurant_mesero,restaurant_casa_vieja_base.group_restaurant_repartidor"/>
                     <button name="action_cancel" string="Cancelar" type="object"
-                            invisible="state in ['delivered', 'cancelled']"/>
+                            invisible="state in ['delivered', 'cancelled']"
+                            groups="restaurant_casa_vieja_base.group_restaurant_administrador,restaurant_casa_vieja_base.group_restaurant_administracion,restaurant_casa_vieja_base.group_restaurant_mesero"/>
                     <button name="action_reset_to_draft" string="Volver a borrador" type="object"
-                            invisible="state == 'draft'"/>
+                            invisible="state == 'draft'"
+                            groups="restaurant_casa_vieja_base.group_restaurant_administrador,restaurant_casa_vieja_base.group_restaurant_administracion,restaurant_casa_vieja_base.group_restaurant_mesero"/>
+                    <button name="action_create_invoice" string="Crear factura" type="object"
+                            class="btn-primary"
+                            invisible="state != 'delivered' or invoice_id"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,confirmed,preparing,on_the_way,delivered"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_claims"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-exclamation-circle"
+                                invisible="claim_count == 0">
+                            <field name="claim_count" widget="statinfo" string="Reclamos"/>
+                        </button>
+                        <button name="action_open_invoice"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-text-o"
+                                invisible="not invoice_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Factura</span>
+                            </div>
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="name"/>
@@ -46,13 +78,30 @@
                             <field name="phone"/>
                             <field name="email"/>
                             <field name="delivery_address"/>
+                            <field name="delivery_zone_id"/>
                         </group>
                         <group>
                             <field name="order_datetime"/>
                             <field name="estimated_delivery_datetime"/>
+                            <button name="action_recalculate_eta"
+                                    string="Recalcular ETA"
+                                    type="object"
+                                    class="btn-link"
+                                    invisible="state not in ['confirmed', 'preparing']"/>
                             <field name="delivery_user_id"/>
+                            <div class="oe_inline" invisible="not delivery_user_id">
+                                <span class="me-1">
+                                    <i class="fa fa-tasks" title="Pedidos activos"/>
+                                </span>
+                                <field name="delivery_user_active_count" readonly="1" widget="badge"/>
+                                <span class="ms-2 text-danger" invisible="not delivery_user_is_overloaded">
+                                    <i class="fa fa-exclamation-triangle" title="Repartidor sobrecargado"/>
+                                </span>
+                            </div>
                             <field name="responsible_id"/>
-                            <field name="payment_method"/>
+                            <field name="source_channel" readonly="1"/>
+                            <field name="sale_order_ref" readonly="1"/>
+                            <field name="payment_method" widget="selection"/>
                         </group>
                     </group>
                     <notebook>
@@ -63,31 +112,134 @@
                                     <field name="name"/>
                                     <field name="quantity"/>
                                     <field name="price_unit"/>
+                                    <field name="tax_ids" widget="many2many_tags"/>
                                     <field name="price_subtotal"/>
+                                    <field name="price_tax"/>
+                                    <field name="price_total"/>
                                     <field name="kitchen_note"/>
                                 </list>
                             </field>
                             <group class="oe_subtotal_footer">
                                 <field name="currency_id" invisible="1"/>
                                 <field name="amount_untaxed"/>
+                                <field name="amount_tax"/>
                                 <field name="delivery_fee"/>
                                 <field name="amount_total"/>
                             </group>
                         </page>
+                        <page string="Tiempos" invisible="state == 'draft'">
+                            <group string="Métricas operativas">
+                                <group>
+                                    <field name="minutes_to_prepare" readonly="1"/>
+                                    <field name="minutes_to_dispatch" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="minutes_to_deliver" readonly="1"/>
+                                    <field name="minutes_total" readonly="1"/>
+                                </group>
+                            </group>
+                            <field name="state_log_ids" readonly="1" create="false" delete="false">
+                                <list>
+                                    <field name="change_datetime"/>
+                                    <field name="user_id"/>
+                                    <field name="state_from"/>
+                                    <field name="state_to"/>
+                                    <field name="duration_in_state"/>
+                                </list>
+                            </field>
+                        </page>
                         <page string="Relaciones">
                             <group>
+                                <field name="sale_order_id"/>
                                 <field name="pos_order_id"/>
                                 <field name="invoice_id"/>
+                            </group>
+                        </page>
+                        <page string="Calificaciones" invisible="state != 'delivered'">
+                            <field name="average_rating" readonly="1"/>
+                            <field name="is_fully_rated" readonly="1"/>
+                            <field name="is_driver_rated" invisible="1"/>
+                            <field name="product_rating_ids" readonly="1" create="false" delete="false">
+                                <list>
+                                    <field name="product_id"/>
+                                    <field name="rating"/>
+                                    <field name="comment"/>
+                                    <field name="rating_date"/>
+                                </list>
+                            </field>
+                            <group string="Repartidor" invisible="not is_driver_rated">
+                                <field name="driver_rating_value" readonly="1"/>
+                                <field name="driver_rating_id" readonly="1" create="false" delete="false">
+                                    <list>
+                                        <field name="driver_id"/>
+                                        <field name="rating"/>
+                                        <field name="was_polite"/>
+                                        <field name="was_on_time"/>
+                                        <field name="order_in_good_condition"/>
+                                        <field name="comment"/>
+                                        <field name="rating_date"/>
+                                    </list>
+                                </field>
                             </group>
                         </page>
                         <page string="Notas">
                             <field name="notes"/>
                             <field name="kitchen_notes"/>
+                            <field name="cancel_reason"
+                                   readonly="1"
+                                   invisible="state != 'cancelled'"/>
                         </page>
                     </notebook>
                 </sheet>
                 <chatter/>
             </form>
+        </field>
+    </record>
+
+    <record id="view_delivery_order_kanban" model="ir.ui.view">
+        <field name="name">restaurant.delivery.order.kanban</field>
+        <field name="model">restaurant.delivery.order</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" group_create="false">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="order_datetime"/>
+                <field name="amount_total"/>
+                <field name="delivery_user_id"/>
+                <field name="delivery_user_active_count"/>
+                <field name="delivery_user_is_overloaded"/>
+                <field name="delivery_user_rating_avg"/>
+                <field name="claim_count"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_record_top">
+                            <strong><field name="name"/></strong>
+                        </div>
+                        <div class="mt-1">
+                            <div><field name="partner_id"/></div>
+                            <div><span>Fecha: </span><field name="order_datetime"/></div>
+                            <div><span>Total: </span><field name="amount_total"/></div>
+                            <div>
+                                <span>Repartidor: </span>
+                                <field name="delivery_user_id"
+                                       widget="many2one"
+                                       options="{'no_create': True, 'no_create_edit': True, 'no_open': True}"/>
+                            </div>
+                            <div>
+                                <span>Carga activa: </span>
+                                <field name="delivery_user_active_count"/>
+                            </div>
+                            <div t-if="record.delivery_user_rating_avg.raw_value &gt; 0" class="badge text-bg-warning mt-1">
+                                ★ <t t-esc="record.delivery_user_rating_avg.value"/>
+                            </div>
+                            <div t-if="record.delivery_user_is_overloaded.raw_value" class="badge bg-danger mt-1">
+                                Sobrecarga
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -99,12 +251,19 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="delivery_user_id"/>
+                <field name="delivery_zone_id"/>
+                <field name="source_channel"/>
+                <field name="sale_order_ref"/>
                 <filter name="draft" string="Borrador" domain="[('state', '=', 'draft')]"/>
                 <filter name="confirmed" string="Confirmado" domain="[('state', '=', 'confirmed')]"/>
                 <filter name="preparing" string="En preparación" domain="[('state', '=', 'preparing')]"/>
                 <filter name="on_the_way" string="En camino" domain="[('state', '=', 'on_the_way')]"/>
                 <filter name="delivered" string="Entregado" domain="[('state', '=', 'delivered')]"/>
                 <filter name="cancelled" string="Cancelado" domain="[('state', '=', 'cancelled')]"/>
+                <filter name="source_website_sale" string="Origen web" domain="[('source_channel', '=', 'website_sale')]"/>
+                <filter name="source_manual" string="Origen manual" domain="[('source_channel', '=', 'manual')]"/>
+                <filter name="fully_rated" string="Calificados" domain="[('is_fully_rated', '=', True)]"/>
+                <filter name="not_fully_rated" string="Sin calificar" domain="[('is_fully_rated', '=', False)]"/>
                 <filter name="today" string="Hoy"
                         domain="[
                             ('order_datetime', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),
@@ -113,6 +272,8 @@
                 <group expand="0" string="Agrupar por">
                     <filter name="group_by_state" string="Estado" context="{'group_by': 'state'}"/>
                     <filter name="group_by_delivery_user" string="Repartidor" context="{'group_by': 'delivery_user_id'}"/>
+                    <filter name="group_by_zone" string="Zona" context="{'group_by': 'delivery_zone_id'}"/>
+                    <filter name="group_by_source_channel" string="Canal" context="{'group_by': 'source_channel'}"/>
                     <filter name="group_by_payment_method" string="Método de pago" context="{'group_by': 'payment_method'}"/>
                 </group>
             </search>
@@ -122,7 +283,7 @@
     <record id="action_restaurant_delivery_order" model="ir.actions.act_window">
         <field name="name">Pedidos a domicilio</field>
         <field name="res_model">restaurant.delivery.order</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">list,kanban,form</field>
         <field name="search_view_id" ref="view_delivery_order_search"/>
     </record>
 
@@ -139,3 +300,4 @@
         action="action_restaurant_delivery_order"
         sequence="10"/>
 </odoo>
+

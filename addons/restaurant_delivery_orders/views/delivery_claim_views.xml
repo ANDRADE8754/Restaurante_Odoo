@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_delivery_claim_list" model="ir.ui.view">
+        <field name="name">restaurant.delivery.claim.list</field>
+        <field name="model">restaurant.delivery.claim</field>
+        <field name="arch" type="xml">
+            <list string="Reclamos delivery">
+                <field name="name"/>
+                <field name="delivery_order_id"/>
+                <field name="partner_id"/>
+                <field name="claim_type"/>
+                <field name="state"/>
+                <field name="claim_date"/>
+                <field name="responsible_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_delivery_claim_form" model="ir.ui.view">
+        <field name="name">restaurant.delivery.claim.form</field>
+        <field name="model">restaurant.delivery.claim</field>
+        <field name="arch" type="xml">
+            <form string="Reclamo delivery">
+                <header>
+                    <button name="action_review"
+                            string="En revision"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'open'"/>
+                    <button name="action_resolve"
+                            string="Resolver"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state not in ['open', 'in_review']"/>
+                    <button name="action_reject"
+                            string="Rechazar"
+                            type="object"
+                            invisible="state not in ['open', 'in_review']"/>
+                    <button name="action_reopen"
+                            string="Reabrir"
+                            type="object"
+                            invisible="state not in ['resolved', 'rejected']"
+                            groups="restaurant_casa_vieja_base.group_restaurant_administrador"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,in_review,resolved,rejected"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="delivery_order_id"/>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="claim_date" readonly="1"/>
+                            <field name="responsible_id"/>
+                        </group>
+                        <group>
+                            <field name="claim_type"/>
+                            <field name="description"/>
+                            <field name="affected_line_ids" widget="many2many_tags"/>
+                            <field name="evidence_note"/>
+                        </group>
+                    </group>
+                    <group string="Resolucion" invisible="state not in ['in_review', 'resolved', 'rejected']">
+                        <group>
+                            <field name="resolution_type" readonly="state in ['resolved', 'rejected']"/>
+                            <field name="resolution_notes" readonly="state in ['resolved', 'rejected']"/>
+                            <field name="credit_note_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="resolved_by" readonly="1"/>
+                            <field name="resolved_date" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_delivery_claim_kanban" model="ir.ui.view">
+        <field name="name">restaurant.delivery.claim.kanban</field>
+        <field name="model">restaurant.delivery.claim</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="delivery_order_id"/>
+                <field name="claim_type"/>
+                <field name="state"/>
+                <field name="claim_date"/>
+                <field name="responsible_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_record_top">
+                            <strong><field name="name"/></strong>
+                        </div>
+                        <div class="mt-1">
+                            <div><field name="delivery_order_id"/></div>
+                            <div><field name="claim_type"/></div>
+                            <div><field name="claim_date"/></div>
+                            <div><span>Asignado a: </span><field name="responsible_id"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_delivery_claim_search" model="ir.ui.view">
+        <field name="name">restaurant.delivery.claim.search</field>
+        <field name="model">restaurant.delivery.claim</field>
+        <field name="arch" type="xml">
+            <search string="Buscar reclamos">
+                <field name="name"/>
+                <field name="delivery_order_id"/>
+                <field name="partner_id"/>
+                <field name="claim_type"/>
+                <field name="responsible_id"/>
+                <filter name="state_open" string="Abiertos" domain="[('state', '=', 'open')]"/>
+                <filter name="state_in_review" string="En revision" domain="[('state', '=', 'in_review')]"/>
+                <filter name="state_resolved" string="Resueltos" domain="[('state', '=', 'resolved')]"/>
+                <filter name="state_rejected" string="Rechazados" domain="[('state', '=', 'rejected')]"/>
+                <filter name="last_24h" string="Ultimas 24h"
+                        domain="[('claim_date', '&gt;=', (context_today() - relativedelta(days=1)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="my_claims" string="Mis reclamos asignados" domain="[('responsible_id', '=', uid)]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_by_state" string="Estado" context="{'group_by': 'state'}"/>
+                    <filter name="group_by_type" string="Tipo" context="{'group_by': 'claim_type'}"/>
+                    <filter name="group_by_responsible" string="Asignado a" context="{'group_by': 'responsible_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_delivery_claim" model="ir.actions.act_window">
+        <field name="name">Reclamos</field>
+        <field name="res_model">restaurant.delivery.claim</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_delivery_claim_search"/>
+        <field name="context">{'search_default_state_open': 1}</field>
+    </record>
+
+    <menuitem
+        id="menu_delivery_claim"
+        name="Reclamos"
+        parent="restaurant_delivery_orders.menu_delivery_operations"
+        action="action_delivery_claim"
+        sequence="20"/>
+</odoo>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_delivery_schedule_list" model="ir.ui.view">
+        <field name="name">restaurant.delivery.schedule.list</field>
+        <field name="model">restaurant.delivery.schedule</field>
+        <field name="arch" type="xml">
+            <list string="Horarios delivery" editable="bottom">
+                <field name="day_of_week"/>
+                <field name="hour_from" widget="float_time"/>
+                <field name="hour_to" widget="float_time"/>
+                <field name="active"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_delivery_schedule_form" model="ir.ui.view">
+        <field name="name">restaurant.delivery.schedule.form</field>
+        <field name="model">restaurant.delivery.schedule</field>
+        <field name="arch" type="xml">
+            <form string="Horario delivery">
+                <sheet>
+                    <group>
+                        <field name="day_of_week"/>
+                        <field name="hour_from" widget="float_time"/>
+                        <field name="hour_to" widget="float_time"/>
+                        <field name="active"/>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_delivery_schedule" model="ir.actions.act_window">
+        <field name="name">Horarios delivery</field>
+        <field name="res_model">restaurant.delivery.schedule</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem
+        id="menu_delivery_schedule"
+        name="Horarios delivery"
+        parent="restaurant_delivery_orders.menu_delivery_configuration"
+        action="action_delivery_schedule"
+        sequence="20"/>
+</odoo>

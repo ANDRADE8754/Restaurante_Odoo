@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_delivery_product_rating_tree" model="ir.ui.view">
+        <field name="name">restaurant.delivery.product.rating.tree</field>
+        <field name="model">restaurant.delivery.product.rating</field>
+        <field name="arch" type="xml">
+            <list string="Calificaciones de productos" create="false" delete="false">
+                <field name="rating_date"/>
+                <field name="delivery_order_id"/>
+                <field name="product_id"/>
+                <field name="partner_id"/>
+                <field name="rating"/>
+                <field name="comment"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_delivery_product_rating_search" model="ir.ui.view">
+        <field name="name">restaurant.delivery.product.rating.search</field>
+        <field name="model">restaurant.delivery.product.rating</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="partner_id"/>
+                <field name="delivery_order_id"/>
+                <field name="rating"/>
+                <filter name="rating_5" string="5 estrellas" domain="[('rating', '=', 5)]"/>
+                <filter name="rating_4_plus" string="4 o más" domain="[('rating', '&gt;=', 4)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_delivery_product_rating" model="ir.actions.act_window">
+        <field name="name">Calificaciones delivery</field>
+        <field name="res_model">restaurant.delivery.product.rating</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_delivery_product_rating_search"/>
+    </record>
+
+    <record id="view_product_product_form_delivery_rating" model="ir.ui.view">
+        <field name="name">product.product.form.delivery.rating</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button type="action"
+                        name="%(action_delivery_product_rating)d"
+                        class="oe_stat_button"
+                        icon="fa-star"
+                        context="{'search_default_product_id': id, 'default_product_id': id}">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="delivery_rating_count" nolabel="1"/>
+                        </span>
+                        <span class="o_stat_text">Calificaciones</span>
+                        <span class="o_stat_text">
+                            Promedio:
+                            <field name="delivery_rating_avg" nolabel="1"/>
+                        </span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

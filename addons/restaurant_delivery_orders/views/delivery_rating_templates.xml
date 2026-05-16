@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_delivery_order_rating" name="Portal Delivery Order Rating">
+        <t t-call="portal.portal_layout">
+            <div class="container py-4">
+                <style>
+                    .cv_rating_card {
+                        border: 1px solid #e5e7eb;
+                        border-radius: .75rem;
+                        background: #fff;
+                        padding: 1rem;
+                        margin-bottom: 1rem;
+                    }
+                    .cv_star_input {
+                        display: inline-flex;
+                        flex-direction: row-reverse;
+                        gap: .15rem;
+                    }
+                    .cv_star_input input {
+                        display: none;
+                    }
+                    .cv_star_input label {
+                        font-size: 1.4rem;
+                        color: #cbd5e1;
+                        cursor: pointer;
+                        line-height: 1;
+                    }
+                    .cv_star_input label:hover,
+                    .cv_star_input label:hover ~ label,
+                    .cv_star_input input:checked ~ label {
+                        color: #f59e0b;
+                    }
+                    .cv_star_readonly {
+                        font-size: 1.1rem;
+                        letter-spacing: .02rem;
+                    }
+                </style>
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h2 class="mb-0">Califica tu pedido <t t-esc="sale_order.name"/></h2>
+                    <a t-attf-href="/my/orders/{{ sale_order.id }}" class="btn btn-outline-secondary">
+                        Volver al pedido
+                    </a>
+                </div>
+
+                <div t-if="delivery_order.is_fully_rated and (not delivery_order.delivery_user_id or delivery_order.is_driver_rated)"
+                     class="alert alert-success">
+                    Gracias por tu calificacion. Promedio actual:
+                    <strong><t t-esc="'%.2f' % delivery_order.average_rating"/> / 5</strong>.
+                </div>
+
+                <form t-if="(not delivery_order.is_fully_rated) or (delivery_order.delivery_user_id and not delivery_order.is_driver_rated)"
+                      t-att-action="'/my/orders/%s/rate' % sale_order.id"
+                      method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <t t-foreach="delivery_order.line_ids.filtered('product_id')" t-as="line">
+                        <t t-set="existing_rating" t-value="line.rating_id[:1]"/>
+                        <div class="cv_rating_card">
+                            <div class="fw-semibold mb-2">
+                                <t t-esc="line.product_id.display_name"/>
+                            </div>
+
+                            <div t-if="existing_rating">
+                                <div class="cv_star_readonly text-warning mb-2">
+                                    <t t-foreach="range(1, 6)" t-as="star">
+                                        <span t-esc="'★' if star &lt;= existing_rating.rating else '☆'"/>
+                                    </t>
+                                    <span class="text-dark ms-2">
+                                        <t t-esc="existing_rating.rating"/>/5
+                                    </span>
+                                </div>
+                                <p t-if="existing_rating.comment" class="mb-0 text-muted">
+                                    <strong>Comentario:</strong>
+                                    <t t-esc="existing_rating.comment"/>
+                                </p>
+                                <p t-if="not existing_rating.comment" class="mb-0 text-muted">
+                                    Sin comentario.
+                                </p>
+                            </div>
+
+                            <div t-else="">
+                                <label class="form-label mb-1">Calificacion</label>
+                                <div class="cv_star_input mb-2">
+                                    <t t-foreach="[5, 4, 3, 2, 1]" t-as="star_value">
+                                        <input t-att-id="'rating_%s_%s' % (line.id, star_value)"
+                                               t-att-name="'rating_%s' % line.id"
+                                               t-att-value="star_value"
+                                               type="radio"/>
+                                        <label t-att-for="'rating_%s_%s' % (line.id, star_value)">★</label>
+                                    </t>
+                                </div>
+                                <label class="form-label mb-1">Comentario (opcional)</label>
+                                <textarea t-att-name="'comment_%s' % line.id"
+                                          class="form-control"
+                                          rows="2"
+                                          placeholder="Cuéntanos tu experiencia con este plato"/>
+                            </div>
+                        </div>
+                    </t>
+
+                    <t t-if="delivery_order.delivery_user_id">
+                        <t t-set="existing_driver_rating" t-value="delivery_order.driver_rating_id[:1]"/>
+                        <div class="cv_rating_card">
+                            <h4 class="mb-2">¿Como fue tu experiencia con el repartidor?</h4>
+                            <p class="text-muted mb-2">
+                                Repartidor:
+                                <strong><t t-esc="delivery_order.delivery_user_id.name"/></strong>
+                            </p>
+
+                            <div t-if="existing_driver_rating">
+                                <div class="cv_star_readonly text-warning mb-2">
+                                    <t t-foreach="range(1, 6)" t-as="star">
+                                        <span t-esc="'★' if star &lt;= existing_driver_rating.rating else '☆'"/>
+                                    </t>
+                                    <span class="text-dark ms-2">
+                                        <t t-esc="existing_driver_rating.rating"/>/5
+                                    </span>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <span t-if="existing_driver_rating.was_polite" class="badge text-bg-success">Amable</span>
+                                    <span t-if="existing_driver_rating.was_on_time" class="badge text-bg-primary">Puntual</span>
+                                    <span t-if="existing_driver_rating.order_in_good_condition" class="badge text-bg-info">Pedido en buen estado</span>
+                                </div>
+                                <p t-if="existing_driver_rating.comment" class="mb-0 text-muted">
+                                    <strong>Comentario:</strong>
+                                    <t t-esc="existing_driver_rating.comment"/>
+                                </p>
+                                <p t-if="not existing_driver_rating.comment" class="mb-0 text-muted">
+                                    Sin comentario.
+                                </p>
+                            </div>
+
+                            <div t-else="">
+                                <label class="form-label mb-1">Calificacion del repartidor</label>
+                                <div class="cv_star_input mb-3">
+                                    <t t-foreach="[5, 4, 3, 2, 1]" t-as="star_value">
+                                        <input t-att-id="'driver_rating_%s' % star_value"
+                                               name="driver_rating"
+                                               t-att-value="star_value"
+                                               type="radio"/>
+                                        <label t-att-for="'driver_rating_%s' % star_value">★</label>
+                                    </t>
+                                </div>
+
+                                <div class="d-flex flex-wrap gap-3 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="was_polite" id="was_polite"/>
+                                        <label class="form-check-label" for="was_polite">Amable</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="was_on_time" id="was_on_time"/>
+                                        <label class="form-check-label" for="was_on_time">Puntual</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="order_in_good_condition" id="order_in_good_condition"/>
+                                        <label class="form-check-label" for="order_in_good_condition">Pedido en buen estado</label>
+                                    </div>
+                                </div>
+
+                                <label class="form-label mb-1">Comentario sobre la entrega (opcional)</label>
+                                <textarea name="driver_comment"
+                                          class="form-control"
+                                          rows="2"
+                                          placeholder="Cuéntanos como fue la entrega"/>
+                            </div>
+                        </div>
+                    </t>
+
+                    <button type="submit" class="btn btn-primary">
+                        Enviar calificacion
+                    </button>
+                </form>
+            </div>
+        </t>
+    </template>
+</odoo>

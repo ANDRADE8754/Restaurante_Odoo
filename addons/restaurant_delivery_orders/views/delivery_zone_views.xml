@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_delivery_zone_list" model="ir.ui.view">
+        <field name="name">restaurant.delivery.zone.list</field>
+        <field name="model">restaurant.delivery.zone</field>
+        <field name="arch" type="xml">
+            <list string="Zonas de entrega">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="delivery_fee"/>
+                <field name="estimated_minutes"/>
+                <field name="active"/>
+                <field name="order_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_delivery_zone_form" model="ir.ui.view">
+        <field name="name">restaurant.delivery.zone.form</field>
+        <field name="model">restaurant.delivery.zone</field>
+        <field name="arch" type="xml">
+            <form string="Zona de entrega">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="delivery_fee"/>
+                            <field name="estimated_minutes"/>
+                            <field name="color"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                    <notebook>
+                        <page string="Sectores">
+                            <field name="sector_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_delivery_zone_kanban" model="ir.ui.view">
+        <field name="name">restaurant.delivery.zone.kanban</field>
+        <field name="model">restaurant.delivery.zone</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="active">
+                <field name="name"/>
+                <field name="delivery_fee"/>
+                <field name="order_count"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="oe_kanban_global_click oe_kanban_card oe_kanban_color_#{record.color.raw_value}">
+                            <strong><field name="name"/></strong>
+                            <div class="mt-2">
+                                <div>Costo: <field name="delivery_fee"/></div>
+                                <div>Pedidos: <field name="order_count"/></div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_delivery_zone_search" model="ir.ui.view">
+        <field name="name">restaurant.delivery.zone.search</field>
+        <field name="model">restaurant.delivery.zone</field>
+        <field name="arch" type="xml">
+            <search string="Buscar zonas de entrega">
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="active" string="Activas" domain="[('active', '=', True)]"/>
+                <filter name="inactive" string="Inactivas" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_delivery_zone" model="ir.actions.act_window">
+        <field name="name">Zonas de entrega</field>
+        <field name="res_model">restaurant.delivery.zone</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_delivery_zone_search"/>
+    </record>
+
+    <menuitem
+        id="menu_delivery_configuration"
+        name="Configuración"
+        parent="restaurant_casa_vieja_base.menu_restaurant_casa_vieja_root"
+        sequence="90"/>
+
+    <menuitem
+        id="menu_delivery_zone"
+        name="Zonas de entrega"
+        parent="menu_delivery_configuration"
+        action="action_delivery_zone"
+        sequence="10"/>
+</odoo>

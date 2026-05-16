@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="param_restaurant_default_delivery_fee" model="ir.config_parameter">
+            <field name="key">restaurant.default_delivery_fee</field>
+            <field name="value">1.50</field>
+        </record>
+        <record id="delivery_zone_default_unassigned" model="restaurant.delivery.zone">
+            <field name="name">Sin zona asignada</field>
+            <field name="code">SIN_ZONA</field>
+            <field name="delivery_fee">1.50</field>
+            <field name="estimated_minutes">30</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>

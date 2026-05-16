@@ -1,0 +1,430 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template
+        id="portal_my_home_sale_texts"
+        inherit_id="sale.portal_my_home_sale"
+        name="Portal Home Sale Texts"
+    >
+        <xpath expr="//div[@id='portal_alert_category']/t[1]" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+        <xpath expr="//div[@id='portal_client_category']/t[1]/t[@t-set='title']" position="replace">
+            <t t-set="title">Mis pedidos</t>
+        </xpath>
+        <xpath expr="//div[@id='portal_client_category']/t[1]/t[@t-set='text']" position="replace">
+            <t t-set="text">Consulta el estado de tus pedidos a domicilio</t>
+        </xpath>
+    </template>
+
+    <template
+        id="portal_my_home_menu_sale_texts"
+        inherit_id="sale.portal_my_home_menu_sale"
+        name="Portal Breadcrumbs Sale Texts"
+    >
+        <xpath expr="//li[@id='portal_breadcrumbs_sale']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+        <xpath expr="//li[@t-elif=&quot;page_name == 'order' or sale_order and sale_order.state not in ('sent', 'cancel')&quot;]" position="replace">
+            <li t-elif="page_name == 'order' or sale_order and sale_order.state not in ('sent', 'cancel')"
+                t-attf-class="breadcrumb-item #{'active ' if not sale_order else ''}">
+                <a t-if="sale_order" t-attf-href="/my/orders?{{ keep_query() }}">Pedidos</a>
+                <t t-else="">Pedidos</t>
+            </li>
+        </xpath>
+    </template>
+
+    <template
+        id="portal_my_orders_texts"
+        inherit_id="sale.portal_my_orders"
+        name="Portal My Orders Texts"
+    >
+        <xpath expr="//t[@t-call='portal.portal_searchbar']/t[@t-set='title']" position="replace">
+            <t t-set="title">Mis pedidos</t>
+        </xpath>
+        <xpath expr="//div[@role='alert']" position="replace">
+            <div t-if="not orders" class="alert alert-warning" role="alert">
+                AÃºn no tienes pedidos registrados.
+            </div>
+        </xpath>
+        <xpath expr="//thead/tr/th[1]/span[@class='d-none d-md-inline']" position="replace">
+            <span class="d-none d-md-inline">Pedido #</span>
+        </xpath>
+        <xpath expr="//thead/tr/th[1]/span[@class='d-block d-md-none']" position="replace">
+            <span class="d-block d-md-none">Ref.</span>
+        </xpath>
+        <xpath expr="//thead/tr/th[2]" position="replace">
+            <th class="text-end">Fecha</th>
+        </xpath>
+        <xpath expr="//thead/tr/th[3]" position="replace">
+            <th class="text-end">Total</th>
+        </xpath>
+    </template>
+
+    <template
+        id="portal_my_orders_delivery_state"
+        inherit_id="sale.portal_my_orders"
+        name="Portal My Orders Delivery State"
+    >
+        <xpath expr="//thead/tr/th[last()]" position="after">
+            <th class="text-center">Estado entrega</th>
+        </xpath>
+
+        <xpath expr="//t[@t-foreach='orders']/tr/td[last()]" position="after">
+            <td class="text-center">
+                <t t-if="order.delivery_order_id">
+                    <t t-set="delivery_state_label"
+                       t-value="dict(order.delivery_order_id._fields['state'].selection).get(order.delivery_order_id.state)"/>
+                    <t t-set="delivery_badge_class"
+                       t-value="
+                           'text-bg-secondary' if order.delivery_order_id.state == 'draft'
+                           else 'text-bg-primary' if order.delivery_order_id.state == 'confirmed'
+                           else 'text-bg-info' if order.delivery_order_id.state == 'preparing'
+                           else 'text-bg-warning' if order.delivery_order_id.state == 'on_the_way'
+                           else 'text-bg-success' if order.delivery_order_id.state == 'delivered'
+                           else 'text-bg-danger'
+                       "/>
+                    <span class="badge rounded-pill" t-att-class="delivery_badge_class" t-esc="delivery_state_label"/>
+                </t>
+                <t t-else="">
+                    <span class="badge rounded-pill text-bg-secondary">Pendiente</span>
+                </t>
+            </td>
+        </xpath>
+    </template>
+
+    <template
+        id="portal_sale_order_delivery_header"
+        inherit_id="sale.sale_order_portal_template"
+        name="Portal Sale Order Delivery Header"
+    >
+        <xpath expr="//div[@id='quote_content']" position="attributes">
+            <attribute name="t-if">not sale_order.delivery_order_id</attribute>
+        </xpath>
+
+        <xpath expr="//div[@id='quote_content']" position="after">
+            <div id="quote_content" class="col-12 col-lg-8 col-xxl-9 mt-5 mt-lg-0" t-if="sale_order.delivery_order_id">
+                <style>
+                    .cv_order_shell {
+                        --cv-bg: linear-gradient(135deg, #f4f7ff 0%, #ffffff 55%, #eef8f4 100%);
+                        --cv-accent: #1e6b52;
+                        --cv-accent-soft: #dcefe7;
+                        --cv-ink: #1f2933;
+                        --cv-muted: #64748b;
+                        --cv-border: #e4e9f0;
+                        background: var(--cv-bg);
+                        border: 1px solid var(--cv-border);
+                        border-radius: 1rem;
+                        padding: 1.25rem;
+                    }
+                    .cv_order_head {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        gap: 1rem;
+                        flex-wrap: wrap;
+                    }
+                    .cv_order_title {
+                        margin: 0;
+                        font-size: 1.45rem;
+                        color: var(--cv-ink);
+                    }
+                    .cv_order_subtitle {
+                        margin: .15rem 0 0 0;
+                        color: var(--cv-muted);
+                        font-size: .95rem;
+                    }
+                    .cv_kpis {
+                        margin-top: 1rem;
+                        display: grid;
+                        gap: .75rem;
+                        grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+                    }
+                    .cv_kpi {
+                        background: #fff;
+                        border: 1px solid var(--cv-border);
+                        border-radius: .8rem;
+                        padding: .8rem .9rem;
+                    }
+                    .cv_kpi_label {
+                        display: block;
+                        color: var(--cv-muted);
+                        font-size: .78rem;
+                        text-transform: uppercase;
+                        letter-spacing: .03em;
+                    }
+                    .cv_kpi_value {
+                        margin-top: .2rem;
+                        display: block;
+                        color: var(--cv-ink);
+                        font-weight: 600;
+                        font-size: 1rem;
+                    }
+                    .cv_status_strip {
+                        margin-top: 1rem;
+                        background: #fff;
+                        border: 1px solid var(--cv-border);
+                        border-radius: .8rem;
+                        padding: .8rem;
+                    }
+                    .cv_status_badge {
+                        background: var(--cv-accent-soft);
+                        color: var(--cv-accent);
+                        border: 1px solid #cde4d9;
+                        padding: .38rem .65rem;
+                        border-radius: 999px;
+                        font-weight: 600;
+                        font-size: .85rem;
+                    }
+                    .cv_items_card,
+                    .cv_total_card {
+                        margin-top: 1rem;
+                        background: #fff;
+                        border: 1px solid var(--cv-border);
+                        border-radius: .9rem;
+                        overflow: hidden;
+                    }
+                    .cv_section_title {
+                        margin: 0;
+                        padding: .9rem 1rem;
+                        border-bottom: 1px solid var(--cv-border);
+                        font-size: 1rem;
+                        color: var(--cv-ink);
+                    }
+                    .cv_item_row {
+                        display: grid;
+                        grid-template-columns: auto 1fr auto auto;
+                        gap: .75rem;
+                        align-items: center;
+                        padding: .75rem 1rem;
+                        border-bottom: 1px solid #f0f3f7;
+                    }
+                    .cv_item_row:last-child {
+                        border-bottom: none;
+                    }
+                    .cv_item_name {
+                        color: var(--cv-ink);
+                        font-weight: 500;
+                    }
+                    .cv_item_thumb img {
+                        width: 44px;
+                        height: 44px;
+                        object-fit: cover;
+                        border-radius: .5rem;
+                        border: 1px solid var(--cv-border);
+                        background: #f8fafc;
+                    }
+                    .cv_item_thumb_placeholder {
+                        width: 44px;
+                        height: 44px;
+                        border-radius: .5rem;
+                        border: 1px solid var(--cv-border);
+                        background: #f8fafc;
+                    }
+                    .cv_item_qty {
+                        color: var(--cv-muted);
+                        font-size: .9rem;
+                    }
+                    .cv_item_subtotal {
+                        color: var(--cv-ink);
+                        font-weight: 600;
+                    }
+                    .cv_total_wrap {
+                        padding: .9rem 1rem;
+                    }
+                    .cv_total_line {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: .5rem;
+                        color: var(--cv-muted);
+                    }
+                    .cv_total_line:last-of-type {
+                        margin-bottom: 0;
+                    }
+                    .cv_total_grand {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: .75rem;
+                        padding-top: .75rem;
+                        border-top: 1px dashed var(--cv-border);
+                        color: var(--cv-ink);
+                        font-weight: 700;
+                    }
+                </style>
+
+                <t t-set="delivery_order" t-value="sale_order.delivery_order_id"/>
+                <t t-set="delivery_state_label"
+                   t-value="dict(delivery_order._fields['state'].selection).get(delivery_order.state)"/>
+                <t t-set="delivery_address"
+                   t-value="delivery_order.delivery_address or sale_order.website_delivery_address or (sale_order.partner_shipping_id and sale_order.partner_shipping_id.contact_address) or ''"/>
+
+                <div class="cv_order_shell">
+                    <div class="cv_order_head">
+                        <div>
+                            <h2 class="cv_order_title">Pedido <t t-esc="sale_order.name"/></h2>
+                            <p class="cv_order_subtitle">
+                                Realizado el
+                                <t t-if="delivery_order.order_datetime">
+                                    <span t-field="delivery_order.order_datetime"/>
+                                </t>
+                                <t t-else="">
+                                    <span t-field="sale_order.date_order"/>
+                                </t>
+                            </p>
+                        </div>
+                        <span class="cv_status_badge">
+                            <t t-esc="delivery_state_label"/>
+                        </span>
+                    </div>
+
+                    <div class="cv_kpis">
+                        <div class="cv_kpi">
+                            <span class="cv_kpi_label">Llegada estimada</span>
+                            <span class="cv_kpi_value">
+                                <t t-if="delivery_order.estimated_delivery_datetime">
+                                    <span t-field="delivery_order.estimated_delivery_datetime"/>
+                                </t>
+                                <t t-else="">Por confirmar</t>
+                            </span>
+                        </div>
+                        <div class="cv_kpi">
+                            <span class="cv_kpi_label">Repartidor</span>
+                            <span class="cv_kpi_value">
+                                <t t-esc="delivery_order.delivery_user_id.name if delivery_order.delivery_user_id else 'Pendiente de asignaciÃ³n'"/>
+                            </span>
+                        </div>
+                        <div class="cv_kpi">
+                            <span class="cv_kpi_label">DirecciÃ³n</span>
+                            <span class="cv_kpi_value"><t t-esc="delivery_address"/></span>
+                        </div>
+                    </div>
+
+                    <div class="cv_status_strip">
+                        <strong>Estado actual:</strong>
+                        <span class="ms-1" t-esc="delivery_state_label"/>
+                    </div>
+
+                    <div class="cv_items_card">
+                        <h3 class="cv_section_title">Tu pedido</h3>
+                        <t t-foreach="delivery_order.line_ids" t-as="line">
+                            <div class="cv_item_row">
+                                <div class="cv_item_thumb">
+                                    <t t-if="line.product_id.image_128">
+                                        <span t-field="line.product_id.image_128"
+                                              t-options="{'widget': 'image', 'qweb_img_responsive': False}"/>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="cv_item_thumb_placeholder"/>
+                                    </t>
+                                </div>
+                                <div class="cv_item_name" t-esc="line.product_id.display_name"/>
+                                <div class="cv_item_qty">
+                                    x <t t-esc="line.quantity"/>
+                                </div>
+                                <div class="cv_item_subtotal">
+                                    <span t-esc="line.price_subtotal"
+                                          t-options="{'widget': 'monetary', 'display_currency': delivery_order.currency_id}"/>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+
+                    <div class="cv_total_card">
+                        <h3 class="cv_section_title">Resumen de pago</h3>
+                        <div class="cv_total_wrap">
+                            <div class="cv_total_line">
+                                <span>Subtotal productos</span>
+                                <span t-esc="delivery_order.amount_untaxed"
+                                      t-options="{'widget': 'monetary', 'display_currency': delivery_order.currency_id}"/>
+                            </div>
+                            <div class="cv_total_line">
+                                <span>Costo de entrega</span>
+                                <span t-esc="delivery_order.delivery_fee"
+                                      t-options="{'widget': 'monetary', 'display_currency': delivery_order.currency_id}"/>
+                            </div>
+                            <div class="cv_total_grand">
+                                <span>Total</span>
+                                <span t-esc="delivery_order.amount_total"
+                                      t-options="{'widget': 'monetary', 'display_currency': delivery_order.currency_id}"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+        <xpath expr="//div[@id='quote_content']/div[@role='dialog'][1]" position="before">
+            <div t-if="sale_order.delivery_order_id" class="alert alert-info d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <strong>Estado de entrega:</strong>
+                    <t t-set="delivery_state_label"
+                       t-value="dict(sale_order.delivery_order_id._fields['state'].selection).get(sale_order.delivery_order_id.state)"/>
+                    <span t-esc="delivery_state_label"/>
+                </div>
+                <div t-if="sale_order.delivery_order_id.delivery_user_id">
+                    <strong>Repartidor:</strong>
+                    <span t-esc="sale_order.delivery_order_id.delivery_user_id.name"/>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <template
+        id="portal_sale_order_delivery_rating_cta"
+        inherit_id="sale.sale_order_portal_template"
+        name="Portal Sale Order Delivery Rating CTA"
+    >
+        <xpath expr="//div[@id='quote_content']" position="before">
+            <div t-if="sale_order.delivery_order_id and sale_order.delivery_order_id.state == 'delivered'"
+                 class="alert alert-light border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <t t-if="(not sale_order.delivery_order_id.is_fully_rated) or (sale_order.delivery_order_id.delivery_user_id and not sale_order.delivery_order_id.is_driver_rated)">
+                    <div>
+                        <strong>Tu pedido fue entregado.</strong>
+                        Ahora puedes calificar tu pedido y la entrega.
+                    </div>
+                    <a t-attf-href="/my/orders/{{ sale_order.id }}/rate" class="btn btn-warning">
+                        â­ Califica tu pedido
+                    </a>
+                </t>
+                <t t-else="">
+                    <div>
+                        <strong>Gracias por tu calificacion.</strong>
+                        Promedio:
+                        <t t-esc="'%.2f' % sale_order.delivery_order_id.average_rating"/> / 5
+                    </div>
+                </t>
+            </div>
+            <div t-if="sale_order.delivery_order_id and sale_order.delivery_order_id.state == 'delivered'"
+                 class="alert alert-danger-subtle border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <t t-if="sale_order.delivery_order_id._is_within_claim_window() and sale_order.delivery_order_id.open_claim_count == 0">
+                    <div>
+                        ¿Tuviste un problema con el pedido? Puedes reportarlo dentro del plazo de reclamos.
+                    </div>
+                    <a t-attf-href="/my/orders/{{ sale_order.id }}/claim" class="btn btn-outline-danger">
+                        Reportar un problema
+                    </a>
+                </t>
+                <t t-else="">
+                    <div t-if="sale_order.delivery_order_id.open_claim_count &gt; 0">
+                        Ya tienes un reclamo en curso para este pedido.
+                    </div>
+                    <div t-else="">
+                        El plazo para reportar problemas de este pedido ya expiró.
+                    </div>
+                    <a href="/my/claims" class="btn btn-outline-secondary">
+                        Ver mis reclamos
+                    </a>
+                </t>
+            </div>
+            <div t-if="request.params.get('claim_created')" class="alert alert-success">
+                Reclamo enviado correctamente. Nuestro equipo lo revisara pronto.
+            </div>
+            <div t-if="request.params.get('claim_unavailable')" class="alert alert-warning">
+                No es posible crear un reclamo para este pedido en este momento.
+            </div>
+            <div t-if="request.params.get('delivery_rating_thanks')"
+                 class="alert alert-success">
+                Gracias por tu calificacion. Tus comentarios nos ayudan a mejorar.
+            </div>
+        </xpath>
+    </template>
+</odoo>

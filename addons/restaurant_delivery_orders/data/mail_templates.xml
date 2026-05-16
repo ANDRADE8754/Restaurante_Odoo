@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mail_template_delivery_confirmed" model="mail.template">
+            <field name="name">Delivery: Pedido confirmado</field>
+            <field name="model_id" ref="model_restaurant_delivery_order"/>
+            <field name="subject">Pedido ${object.name} confirmado — Casa Vieja</field>
+            <field name="email_from">${object.env.company.email or 'noreply@casavieja.com'}</field>
+            <field name="email_to">${object.email or object.partner_id.email}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; background:#f7f7f7; padding:24px;">
+                    <div style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #e5e5e5;">
+                        <div style="background:#8B1E1E; color:#ffffff; padding:16px 20px; font-size:20px; font-weight:bold;">
+                            Casa Vieja
+                        </div>
+                        <div style="padding:20px;">
+                            <p>Hola <t t-out="object.partner_id.name or 'cliente'"/>,</p>
+                            <p>Hemos recibido tu pedido y ya está confirmado.</p>
+                            <p><strong>Resumen:</strong></p>
+                            <ul>
+                                <li>Número de pedido: <strong><t t-out="object.name"/></strong></li>
+                                <li>Dirección: <t t-out="object.delivery_address"/></li>
+                                <li>Total: <t t-out="'%.2f' % object.amount_total"/></li>
+                            </ul>
+                            <p>Te notificaremos cuando tu pedido pase a preparación.</p>
+                        </div>
+                        <div style="padding:12px 20px; color:#777; font-size:12px; border-top:1px solid #eee;">
+                            Gracias por preferir Casa Vieja.
+                        </div>
+                    </div>
+                </div>
+            </field>
+        </record>
+
+        <record id="mail_template_delivery_preparing" model="mail.template">
+            <field name="name">Delivery: Pedido en preparación</field>
+            <field name="model_id" ref="model_restaurant_delivery_order"/>
+            <field name="subject">Tu pedido ${object.name} está en preparación</field>
+            <field name="email_from">${object.env.company.email or 'noreply@casavieja.com'}</field>
+            <field name="email_to">${object.email or object.partner_id.email}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; background:#f7f7f7; padding:24px;">
+                    <div style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #e5e5e5;">
+                        <div style="background:#8B1E1E; color:#ffffff; padding:16px 20px; font-size:20px; font-weight:bold;">
+                            Casa Vieja
+                        </div>
+                        <div style="padding:20px;">
+                            <p>Hola <t t-out="object.partner_id.name or 'cliente'"/>,</p>
+                            <p>Tu pedido <strong><t t-out="object.name"/></strong> está siendo preparado en cocina.</p>
+                            <p t-if="object.estimated_delivery_datetime">
+                                Entrega estimada: <strong><t t-out="object.estimated_delivery_datetime"/></strong>
+                            </p>
+                        </div>
+                        <div style="padding:12px 20px; color:#777; font-size:12px; border-top:1px solid #eee;">
+                            Te mantendremos informado del estado de tu pedido.
+                        </div>
+                    </div>
+                </div>
+            </field>
+        </record>
+
+        <record id="mail_template_delivery_on_the_way" model="mail.template">
+            <field name="name">Delivery: Pedido en camino</field>
+            <field name="model_id" ref="model_restaurant_delivery_order"/>
+            <field name="subject">Tu pedido ${object.name} va en camino 🛵</field>
+            <field name="email_from">${object.env.company.email or 'noreply@casavieja.com'}</field>
+            <field name="email_to">${object.email or object.partner_id.email}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; background:#f7f7f7; padding:24px;">
+                    <div style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #e5e5e5;">
+                        <div style="background:#8B1E1E; color:#ffffff; padding:16px 20px; font-size:20px; font-weight:bold;">
+                            Casa Vieja
+                        </div>
+                        <div style="padding:20px;">
+                            <p>Hola <t t-out="object.partner_id.name or 'cliente'"/>,</p>
+                            <p>¡Tu pedido <strong><t t-out="object.name"/></strong> ya va en camino!</p>
+                            <p t-if="object.delivery_user_id">
+                                Repartidor: <strong><t t-out="object.delivery_user_id.name"/></strong>
+                            </p>
+                            <p t-if="object.estimated_delivery_datetime">
+                                Entrega estimada: <strong><t t-out="object.estimated_delivery_datetime"/></strong>
+                            </p>
+                        </div>
+                        <div style="padding:12px 20px; color:#777; font-size:12px; border-top:1px solid #eee;">
+                            Gracias por tu paciencia.
+                        </div>
+                    </div>
+                </div>
+            </field>
+        </record>
+
+        <record id="mail_template_delivery_delivered" model="mail.template">
+            <field name="name">Delivery: Pedido entregado</field>
+            <field name="model_id" ref="model_restaurant_delivery_order"/>
+            <field name="subject">Pedido ${object.name} entregado — ¡Gracias!</field>
+            <field name="email_from">${object.env.company.email or 'noreply@casavieja.com'}</field>
+            <field name="email_to">${object.email or object.partner_id.email}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; background:#f7f7f7; padding:24px;">
+                    <div style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #e5e5e5;">
+                        <div style="background:#8B1E1E; color:#ffffff; padding:16px 20px; font-size:20px; font-weight:bold;">
+                            Casa Vieja
+                        </div>
+                        <div style="padding:20px;">
+                            <p>Hola <t t-out="object.partner_id.name or 'cliente'"/>,</p>
+                            <p>Confirmamos que tu pedido <strong><t t-out="object.name"/></strong> fue entregado.</p>
+                            <p>¡Gracias por confiar en Casa Vieja! Esperamos atenderte nuevamente pronto.</p>
+                        </div>
+                        <div style="padding:12px 20px; color:#777; font-size:12px; border-top:1px solid #eee;">
+                            Casa Vieja — Sabor que vuelve.
+                        </div>
+                    </div>
+                </div>
+            </field>
+        </record>
+
+        <record id="mail_template_delivery_cancelled" model="mail.template">
+            <field name="name">Delivery: Pedido cancelado</field>
+            <field name="model_id" ref="model_restaurant_delivery_order"/>
+            <field name="subject">Pedido ${object.name} cancelado</field>
+            <field name="email_from">${object.env.company.email or 'noreply@casavieja.com'}</field>
+            <field name="email_to">${object.email or object.partner_id.email}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; background:#f7f7f7; padding:24px;">
+                    <div style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #e5e5e5;">
+                        <div style="background:#8B1E1E; color:#ffffff; padding:16px 20px; font-size:20px; font-weight:bold;">
+                            Casa Vieja
+                        </div>
+                        <div style="padding:20px;">
+                            <p>Hola <t t-out="object.partner_id.name or 'cliente'"/>,</p>
+                            <p>Lamentamos informarte que tu pedido <strong><t t-out="object.name"/></strong> fue cancelado.</p>
+                            <p t-if="object.cancel_reason">
+                                Motivo: <strong><t t-out="object.cancel_reason"/></strong>
+                            </p>
+                            <p>Si tienes dudas, por favor contáctanos y te ayudaremos de inmediato.</p>
+                        </div>
+                        <div style="padding:12px 20px; color:#777; font-size:12px; border-top:1px solid #eee;">
+                            Gracias por tu comprensión.
+                        </div>
+                    </div>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>

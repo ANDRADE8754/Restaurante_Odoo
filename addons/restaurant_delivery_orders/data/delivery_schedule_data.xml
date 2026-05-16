@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="delivery_schedule_monday" model="restaurant.delivery.schedule">
+            <field name="day_of_week">0</field>
+            <field name="hour_from">11.0</field>
+            <field name="hour_to">22.0</field>
+            <field name="active">True</field>
+        </record>
+        <record id="delivery_schedule_tuesday" model="restaurant.delivery.schedule">
+            <field name="day_of_week">1</field>
+            <field name="hour_from">11.0</field>
+            <field name="hour_to">22.0</field>
+            <field name="active">True</field>
+        </record>
+        <record id="delivery_schedule_wednesday" model="restaurant.delivery.schedule">
+            <field name="day_of_week">2</field>
+            <field name="hour_from">11.0</field>
+            <field name="hour_to">22.0</field>
+            <field name="active">True</field>
+        </record>
+        <record id="delivery_schedule_thursday" model="restaurant.delivery.schedule">
+            <field name="day_of_week">3</field>
+            <field name="hour_from">11.0</field>
+            <field name="hour_to">22.0</field>
+            <field name="active">True</field>
+        </record>
+        <record id="delivery_schedule_friday" model="restaurant.delivery.schedule">
+            <field name="day_of_week">4</field>
+            <field name="hour_from">11.0</field>
+            <field name="hour_to">22.0</field>
+            <field name="active">True</field>
+        </record>
+        <record id="delivery_schedule_saturday" model="restaurant.delivery.schedule">
+            <field name="day_of_week">5</field>
+            <field name="hour_from">11.0</field>
+            <field name="hour_to">22.0</field>
+            <field name="active">True</field>
+        </record>
+        <record id="delivery_schedule_sunday" model="restaurant.delivery.schedule">
+            <field name="day_of_week">6</field>
+            <field name="hour_from">11.0</field>
+            <field name="hour_to">22.0</field>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>

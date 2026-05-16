@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_restaurant_delivery" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.restaurant.delivery</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <group string="Pedidos a Domicilio Casa Vieja">
+                    <field name="delivery_fee_default"/>
+                    <field name="delivery_max_concurrent_orders"/>
+                    <field name="delivery_default_prep_minutes"/>
+                    <field name="delivery_default_travel_minutes"/>
+                    <field name="delivery_send_status_emails"/>
+                    <field name="delivery_claim_hours_limit"/>
+                    <button
+                        type="action"
+                        name="%(restaurant_delivery_orders.action_delivery_schedule)d"
+                        string="Configurar horarios de delivery"
+                        class="btn-link"
+                    />
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

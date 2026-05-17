@@ -43,6 +43,7 @@ producto, estados del pedido y enlaces a POS / facturación.
         'views/delivery_schedule_views.xml',
         'views/res_config_settings_views.xml',
         'views/delivery_order_views.xml',
+        'views/delivery_invoice_views.xml',
         'views/delivery_claim_views.xml',
         'views/product_rating_views.xml',
         'views/delivery_driver_dashboard.xml',

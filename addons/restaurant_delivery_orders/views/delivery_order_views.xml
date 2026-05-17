@@ -49,6 +49,10 @@
                     <button name="action_create_invoice" string="Crear factura" type="object"
                             class="btn-primary"
                             invisible="state != 'delivered' or invoice_id"/>
+                    <button name="action_register_payment" string="Registrar pago" type="object"
+                            class="btn-success"
+                            invisible="not invoice_id or invoice_state != 'posted' or invoice_payment_state not in ['not_paid', 'partial']"
+                            groups="restaurant_casa_vieja_base.group_restaurant_administrador,restaurant_casa_vieja_base.group_restaurant_administracion"/>
                     <field name="state" widget="statusbar"
                            statusbar_visible="draft,confirmed,preparing,on_the_way,delivered"/>
                 </header>
@@ -68,6 +72,8 @@
                                 invisible="not invoice_id">
                             <div class="o_stat_info">
                                 <span class="o_stat_text">Factura</span>
+                                <span class="o_stat_value text-success" invisible="invoice_payment_state != 'paid'">Pagada</span>
+                                <span class="o_stat_value text-warning" invisible="invoice_payment_state not in ['not_paid', 'partial', 'in_payment'] or not invoice_id">Pendiente</span>
                             </div>
                         </button>
                     </div>
@@ -152,7 +158,13 @@
                             <group>
                                 <field name="sale_order_id"/>
                                 <field name="pos_order_id"/>
-                                <field name="invoice_id"/>
+                            </group>
+                        </page>
+                        <page string="Facturación">
+                            <group>
+                                <field name="invoice_id" readonly="1"/>
+                                <field name="invoice_state" readonly="1" invisible="not invoice_id"/>
+                                <field name="invoice_payment_state" readonly="1" invisible="not invoice_id"/>
                             </group>
                         </page>
                         <page string="Calificaciones" invisible="state != 'delivered'">
@@ -264,6 +276,12 @@
                 <filter name="source_manual" string="Origen manual" domain="[('source_channel', '=', 'manual')]"/>
                 <filter name="fully_rated" string="Calificados" domain="[('is_fully_rated', '=', True)]"/>
                 <filter name="not_fully_rated" string="Sin calificar" domain="[('is_fully_rated', '=', False)]"/>
+                <separator/>
+                <filter name="invoiced" string="Facturado" domain="[('invoice_id', '!=', False)]"/>
+                <filter name="not_invoiced" string="Sin factura" domain="[('invoice_id', '=', False), ('state', '=', 'delivered')]"/>
+                <filter name="invoice_paid" string="Pagado" domain="[('invoice_id.payment_state', '=', 'paid')]"/>
+                <filter name="invoice_pending" string="Pago pendiente" domain="[('invoice_id.payment_state', 'in', ['not_paid', 'partial'])]"/>
+                <separator/>
                 <filter name="today" string="Hoy"
                         domain="[
                             ('order_datetime', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')),

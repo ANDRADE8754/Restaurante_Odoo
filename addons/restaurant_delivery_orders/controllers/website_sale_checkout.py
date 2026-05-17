@@ -117,40 +117,19 @@ class WebsiteSaleCheckoutDeliveryFields(WebsiteSale):
         return response
 
     @route(
-        ["/shop/address"],
-        type="http",
-        auth="public",
-        website=True,
-        sitemap=False,
-    )
-    def address(self, *args, **kwargs):
-        if redirection := self._ensure_registered_user_for_purchase("/shop/checkout"):
-            return redirection
-        response = super().address(*args, **kwargs)
-        if hasattr(response, "qcontext"):
-            is_available, message = self._get_delivery_schedule_status()
-            response.qcontext.update(
-                {
-                    "delivery_closed": not is_available,
-                    "delivery_closed_message": message,
-                }
-            )
-        return response
-
-    @route(
         ["/shop/confirm_order"],
         type="http",
         auth="public",
         website=True,
         sitemap=False,
     )
-    def confirm_order(self, **post):
+    def shop_confirm_order(self, **post):
         if redirection := self._ensure_registered_user_for_purchase("/shop/checkout"):
             return redirection
         is_available, _message = self._get_delivery_schedule_status()
         if not is_available:
             return request.redirect("/shop/checkout")
-        return super().confirm_order(**post)
+        return super().shop_confirm_order(**post)
 
     def _check_addresses(self, order_sudo):
         # Keep native checks and force registered users to complete address fields.

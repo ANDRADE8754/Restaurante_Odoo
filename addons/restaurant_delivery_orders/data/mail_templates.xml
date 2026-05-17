@@ -146,5 +146,51 @@
                 </div>
             </field>
         </record>
+        <record id="mail_template_delivery_invoice" model="mail.template">
+            <field name="name">Delivery: Factura de pedido</field>
+            <field name="model_id" ref="model_restaurant_delivery_order"/>
+            <field name="subject">Factura de tu pedido ${object.name} — Casa Vieja</field>
+            <field name="email_from">${object.env.company.email or 'noreply@casavieja.com'}</field>
+            <field name="email_to">${object.email or object.partner_id.email}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html" type="html">
+                <div style="font-family: Arial, sans-serif; background:#f7f7f7; padding:24px;">
+                    <div style="max-width:640px; margin:0 auto; background:#ffffff; border:1px solid #e5e5e5;">
+                        <div style="background:#8B1E1E; color:#ffffff; padding:16px 20px; font-size:20px; font-weight:bold;">
+                            Casa Vieja
+                        </div>
+                        <div style="padding:20px;">
+                            <p>Hola <t t-out="object.partner_id.name or 'cliente'"/>,</p>
+                            <p>Tu pedido <strong><t t-out="object.name"/></strong> ha sido facturado. A continuación el resumen:</p>
+                            <table style="width:100%; border-collapse:collapse; margin:12px 0;">
+                                <tr style="background:#f0f0f0;">
+                                    <th style="text-align:left; padding:8px 12px; border:1px solid #ddd;">Concepto</th>
+                                    <th style="text-align:right; padding:8px 12px; border:1px solid #ddd;">Monto</th>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px 12px; border:1px solid #ddd;">Subtotal</td>
+                                    <td style="text-align:right; padding:8px 12px; border:1px solid #ddd;"><t t-out="'%.2f' % object.amount_untaxed"/> <t t-out="object.currency_id.symbol"/></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:8px 12px; border:1px solid #ddd;">Impuestos</td>
+                                    <td style="text-align:right; padding:8px 12px; border:1px solid #ddd;"><t t-out="'%.2f' % object.amount_tax"/> <t t-out="object.currency_id.symbol"/></td>
+                                </tr>
+                                <tr style="font-weight:bold;">
+                                    <td style="padding:8px 12px; border:1px solid #ddd;">Total</td>
+                                    <td style="text-align:right; padding:8px 12px; border:1px solid #ddd;"><t t-out="'%.2f' % object.amount_total"/> <t t-out="object.currency_id.symbol"/></td>
+                                </tr>
+                            </table>
+                            <p t-if="object.invoice_id">
+                                Número de factura: <strong><t t-out="object.invoice_id.name"/></strong>
+                            </p>
+                            <p>Método de pago registrado: <strong><t t-out="dict(object._fields['payment_method'].selection).get(object.payment_method, '')"/></strong></p>
+                        </div>
+                        <div style="padding:12px 20px; color:#777; font-size:12px; border-top:1px solid #eee;">
+                            Gracias por preferir Casa Vieja. Para consultas sobre tu factura, por favor contáctanos.
+                        </div>
+                    </div>
+                </div>
+            </field>
+        </record>
     </data>
 </odoo>

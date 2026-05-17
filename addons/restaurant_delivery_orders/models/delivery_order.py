@@ -27,6 +27,7 @@ class DeliveryOrder(models.Model):
         "delivered": "restaurant_delivery_orders.mail_template_delivery_delivered",
         "cancelled": "restaurant_delivery_orders.mail_template_delivery_cancelled",
     }
+    INVOICE_MAIL_TEMPLATE = "restaurant_delivery_orders.mail_template_delivery_invoice"
 
     name = fields.Char(
         string="Referencia",
@@ -61,13 +62,6 @@ class DeliveryOrder(models.Model):
     delivery_user_id = fields.Many2one(
         comodel_name="res.users",
         string="Repartidor asignado",
-        domain=lambda self: [
-            (
-                "groups_id",
-                "in",
-                [self.env.ref("restaurant_casa_vieja_base.group_restaurant_repartidor").id],
-            )
-        ],
     )
     delivery_user_active_count = fields.Integer(
         string="Pedidos activos del repartidor",
@@ -225,6 +219,14 @@ class DeliveryOrder(models.Model):
     invoice_id = fields.Many2one(
         comodel_name="account.move",
         string="Factura relacionada",
+    )
+    invoice_state = fields.Selection(
+        related="invoice_id.state",
+        string="Estado de factura",
+    )
+    invoice_payment_state = fields.Selection(
+        related="invoice_id.payment_state",
+        string="Estado de pago",
     )
     cancel_reason = fields.Text(
         string="Motivo de cancelación",
@@ -536,6 +538,16 @@ class DeliveryOrder(models.Model):
                     _("Solo el repartidor asignado puede marcar este pedido como entregado.")
                 )
         self.write({"state": "delivered"})
+        for order in self:
+            if not order.invoice_id and order.line_ids:
+                try:
+                    move = order._create_invoice_internal()
+                    move.action_post()
+                    order._send_invoice_notification()
+                except Exception:
+                    _logger.exception(
+                        "Error creando factura automática para pedido %s", order.id
+                    )
 
     def _get_income_account_for_product(self, product):
         return (
@@ -547,7 +559,7 @@ class DeliveryOrder(models.Model):
         template = self.env["product.template"].search(
             [
                 ("name", "=", "Costo de envío"),
-                ("detailed_type", "=", "service"),
+                ("type", "=", "service"),
             ],
             limit=1,
         )
@@ -555,7 +567,7 @@ class DeliveryOrder(models.Model):
             template = self.env["product.template"].create(
                 {
                     "name": "Costo de envío",
-                    "detailed_type": "service",
+                    "type": "service",
                     "sale_ok": False,
                     "purchase_ok": False,
                     "list_price": 0.0,
@@ -563,16 +575,8 @@ class DeliveryOrder(models.Model):
             )
         return template.product_variant_id
 
-    def action_create_invoice(self):
+    def _create_invoice_internal(self):
         self.ensure_one()
-
-        if self.state != "delivered":
-            raise UserError(_("Solo se puede facturar un pedido entregado."))
-        if self.invoice_id:
-            raise UserError(_("Este pedido ya tiene una factura asociada."))
-        if not self.line_ids:
-            raise UserError(_("No se puede crear factura sin líneas de pedido."))
-
         company = self.env.company
         invoice_lines = []
 
@@ -581,70 +585,53 @@ class DeliveryOrder(models.Model):
             income_account = self._get_income_account_for_product(product)
             if not income_account:
                 raise UserError(
-                    _(
-                        "El producto %s no tiene cuenta de ingreso configurada."
-                    )
+                    _("El producto %s no tiene cuenta de ingreso configurada.")
                     % product.display_name
                 )
-
-            invoice_lines.append(
-                (
-                    0,
-                    0,
-                    {
-                        "product_id": product.id,
-                        "name": line.name or product.display_name,
-                        "quantity": line.quantity,
-                        "price_unit": line.price_unit,
-                        "account_id": income_account.id,
-                        "tax_ids": [
-                            (6, 0, product.taxes_id.filtered(lambda t: t.company_id == company).ids)
-                        ],
-                    },
-                )
-            )
+            invoice_lines.append((0, 0, {
+                "product_id": product.id,
+                "name": line.name or product.display_name,
+                "quantity": line.quantity,
+                "price_unit": line.price_unit,
+                "account_id": income_account.id,
+                "tax_ids": [(6, 0, product.taxes_id.filtered(lambda t: t.company_id == company).ids)],
+            }))
 
         if self.delivery_fee:
             fee_product = self._get_or_create_delivery_fee_product()
             fee_account = self._get_income_account_for_product(fee_product)
             if not fee_account:
                 raise UserError(
-                    _(
-                        "El producto Costo de envío no tiene cuenta de ingreso configurada."
-                    )
+                    _("El producto Costo de envío no tiene cuenta de ingreso configurada.")
                 )
-            invoice_lines.append(
-                (
-                    0,
-                    0,
-                    {
-                        "product_id": fee_product.id,
-                        "name": _("Costo de envío"),
-                        "quantity": 1.0,
-                        "price_unit": self.delivery_fee,
-                        "account_id": fee_account.id,
-                        "tax_ids": [
-                            (
-                                6,
-                                0,
-                                fee_product.taxes_id.filtered(
-                                    lambda t: t.company_id == company
-                                ).ids,
-                            )
-                        ],
-                    },
-                )
-            )
+            invoice_lines.append((0, 0, {
+                "product_id": fee_product.id,
+                "name": _("Costo de envío"),
+                "quantity": 1.0,
+                "price_unit": self.delivery_fee,
+                "account_id": fee_account.id,
+                "tax_ids": [(6, 0, fee_product.taxes_id.filtered(lambda t: t.company_id == company).ids)],
+            }))
 
-        move = self.env["account.move"].create(
-            {
-                "move_type": "out_invoice",
-                "partner_id": self.partner_id.id,
-                "invoice_date": fields.Date.context_today(self),
-                "invoice_line_ids": invoice_lines,
-            }
-        )
+        move = self.env["account.move"].create({
+            "move_type": "out_invoice",
+            "partner_id": self.partner_id.id,
+            "invoice_date": fields.Date.context_today(self),
+            "invoice_line_ids": invoice_lines,
+            "delivery_order_id": self.id,
+        })
         self.invoice_id = move.id
+        return move
+
+    def action_create_invoice(self):
+        self.ensure_one()
+        if self.state != "delivered":
+            raise UserError(_("Solo se puede facturar un pedido entregado."))
+        if self.invoice_id:
+            raise UserError(_("Este pedido ya tiene una factura asociada."))
+        if not self.line_ids:
+            raise UserError(_("No se puede crear factura sin líneas de pedido."))
+        move = self._create_invoice_internal()
         return {
             "type": "ir.actions.act_window",
             "name": _("Factura"),
@@ -653,6 +640,32 @@ class DeliveryOrder(models.Model):
             "res_id": move.id,
             "target": "current",
         }
+
+    def _send_invoice_notification(self):
+        self.ensure_one()
+        if not self.invoice_id:
+            return
+        is_enabled = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("restaurant.delivery_send_status_emails", "True")
+        )
+        if str(is_enabled).strip().lower() not in ("1", "true", "yes", "y", "on"):
+            return
+        partner_email = self.email or self.partner_id.email
+        if not partner_email:
+            return
+        template = self.env.ref(self.INVOICE_MAIL_TEMPLATE, raise_if_not_found=False)
+        if template:
+            template.send_mail(self.id, force_send=False)
+
+    def action_register_payment(self):
+        self.ensure_one()
+        if not self.invoice_id:
+            raise UserError(_("Este pedido no tiene factura asociada."))
+        if self.invoice_id.state == "draft":
+            raise UserError(_("La factura debe estar confirmada antes de registrar un pago."))
+        return self.invoice_id.action_register_payment()
 
     def action_open_invoice(self):
         self.ensure_one()

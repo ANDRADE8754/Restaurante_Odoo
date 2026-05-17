@@ -15,17 +15,23 @@
         </field>
     </record>
 
-    <record id="action_delivery_driver_performance" model="ir.actions.act_window">
+    <record id="action_delivery_driver_performance" model="ir.actions.server">
         <field name="name">Desempeño de repartidores</field>
-        <field name="res_model">res.users</field>
-        <field name="view_mode">list,form</field>
-        <field name="view_id" ref="view_delivery_driver_performance_list"/>
-        <field name="domain">[('groups_id', 'in', [ref('restaurant_casa_vieja_base.group_restaurant_repartidor')])]</field>
-        <field name="groups_id" eval="[
-            (4, ref('restaurant_casa_vieja_base.group_restaurant_administrador')),
-            (4, ref('restaurant_casa_vieja_base.group_restaurant_administracion')),
-            (4, ref('restaurant_casa_vieja_base.group_restaurant_mesero'))
-        ]"/>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="state">code</field>
+        <field name="code">
+group = env.ref('restaurant_casa_vieja_base.group_restaurant_repartidor', raise_if_not_found=False)
+driver_ids = group.users.ids if group else []
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Desempeño de repartidores',
+    'res_model': 'res.users',
+    'view_mode': 'list,form',
+    'views': [(env.ref('restaurant_delivery_orders.view_delivery_driver_performance_list').id, 'list'), (False, 'form')],
+    'domain': [('id', 'in', driver_ids)],
+    'target': 'current',
+}
+        </field>
     </record>
 
     <menuitem

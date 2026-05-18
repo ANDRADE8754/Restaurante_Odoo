@@ -48,8 +48,7 @@ class SaleOrder(models.Model):
 
     def set_delivery_line(self, carrier, amount):
         """Integracion tienda nativa:
-        En pedidos web, fuerza el costo de entrega configurado en
-        `restaurant.default_delivery_fee`.
+        En pedidos web, usa tarifa fija global configurable.
         """
         for order in self:
             if order.website_id:
@@ -137,9 +136,7 @@ class SaleOrder(models.Model):
                 update_vals["sale_order_id"] = self.id
             if self.website_delivery_note and not existing.notes:
                 update_vals["notes"] = self.website_delivery_note
-            if self.website_delivery_zone_id and not existing.delivery_zone_id:
-                update_vals["delivery_zone_id"] = self.website_delivery_zone_id.id
-                update_vals["delivery_fee"] = self.website_delivery_zone_id.delivery_fee
+            update_vals["delivery_fee"] = self._get_default_delivery_fee()
             if update_vals:
                 existing.sudo().write(update_vals)
             if self.delivery_order_id != existing:
@@ -153,11 +150,7 @@ class SaleOrder(models.Model):
         base_vals = DeliveryOrder._prepare_delivery_vals_from_sale_stub(self)
         vals = {
             **base_vals,
-            "delivery_fee": (
-                self.website_delivery_zone_id.delivery_fee
-                if self.website_delivery_zone_id
-                else self._get_default_delivery_fee()
-            ),
+            "delivery_fee": self._get_default_delivery_fee(),
             "line_ids": line_commands,
             "sale_order_id": self.id,
         }

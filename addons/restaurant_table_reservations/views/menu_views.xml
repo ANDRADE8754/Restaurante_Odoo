@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="menu_reservation_root"
+        name="Reservas"
+        parent="restaurant_casa_vieja_base.menu_restaurant_casa_vieja_root"
+        groups="restaurant_table_reservations.group_restaurant_reservation_user,restaurant_table_reservations.group_restaurant_reservation_manager,restaurant_casa_vieja_base.group_restaurant_mesero,restaurant_casa_vieja_base.group_restaurant_administracion,restaurant_casa_vieja_base.group_restaurant_administrador,point_of_sale.group_pos_user,point_of_sale.group_pos_manager"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_reservation_reservations"
+        name="Reservas de mesa"
+        parent="menu_reservation_root"
+        action="action_table_reservation"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_reservation_tables"
+        name="Mesas del restaurante"
+        parent="menu_reservation_root"
+        action="action_restaurant_table"
+        sequence="20"/>
+</odoo>

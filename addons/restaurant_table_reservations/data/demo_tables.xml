@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="demo_floor_salon" model="restaurant.floor">
+            <field name="name">Salón principal</field>
+            <field name="sequence">1</field>
+            <field name="active" eval="True"/>
+        </record>
+        <record id="demo_floor_terraza" model="restaurant.floor">
+            <field name="name">Terraza</field>
+            <field name="sequence">2</field>
+            <field name="active" eval="True"/>
+        </record>
+        <record id="demo_floor_jardin" model="restaurant.floor">
+            <field name="name">Jardín</field>
+            <field name="sequence">3</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <record id="demo_table_interior_1" model="restaurant.table">
+            <field name="name">Mesa 1 Interior</field>
+            <field name="code">M-INT-1</field>
+            <field name="capacity">2</field>
+            <field name="location_area">salon</field>
+            <field name="floor_id" ref="demo_floor_salon"/>
+            <field name="table_number">1</field>
+            <field name="active" eval="True"/>
+        </record>
+        <record id="demo_table_interior_2" model="restaurant.table">
+            <field name="name">Mesa 2 Interior</field>
+            <field name="code">M-INT-2</field>
+            <field name="capacity">4</field>
+            <field name="location_area">salon</field>
+            <field name="floor_id" ref="demo_floor_salon"/>
+            <field name="table_number">2</field>
+            <field name="active" eval="True"/>
+        </record>
+        <record id="demo_table_interior_3" model="restaurant.table">
+            <field name="name">Mesa 3 Interior</field>
+            <field name="code">M-INT-3</field>
+            <field name="capacity">4</field>
+            <field name="location_area">salon</field>
+            <field name="floor_id" ref="demo_floor_salon"/>
+            <field name="table_number">3</field>
+            <field name="active" eval="True"/>
+        </record>
+        <record id="demo_table_terraza_1" model="restaurant.table">
+            <field name="name">Mesa Terraza 1</field>
+            <field name="code">M-TER-1</field>
+            <field name="capacity">2</field>
+            <field name="location_area">terraza</field>
+            <field name="floor_id" ref="demo_floor_terraza"/>
+            <field name="table_number">1</field>
+            <field name="active" eval="True"/>
+        </record>
+        <record id="demo_table_jardin_1" model="restaurant.table">
+            <field name="name">Mesa Jardín 1</field>
+            <field name="code">M-JAR-1</field>
+            <field name="capacity">6</field>
+            <field name="location_area">jardin</field>
+            <field name="floor_id" ref="demo_floor_jardin"/>
+            <field name="table_number">1</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

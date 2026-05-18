@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_table_reservation_form_inherit_pos" model="ir.ui.view">
+        <field name="name">restaurant.table.reservation.form.pos</field>
+        <field name="model">restaurant.table.reservation</field>
+        <field name="inherit_id" ref="restaurant_table_reservations.view_table_reservation_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='pos_order_id']" position="after">
+                <button name="action_open_pos_order"
+                        type="object"
+                        string="Abrir orden POS"
+                        class="btn-link"
+                        invisible="not pos_order_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,9 +1,10 @@
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class DeliveryOrderLine(models.Model):
     _name = "restaurant.delivery.order.line"
+    LOCKED_ORDER_STATES = ("delivered", "cancelled")
     _description = "Línea de Pedido a Domicilio"
 
     order_id = fields.Many2one(
@@ -98,3 +99,37 @@ class DeliveryOrderLine(models.Model):
     def _compute_is_rated(self):
         for line in self:
             line.is_rated = bool(line.rating_id)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        order_ids = [vals.get("order_id") for vals in vals_list if vals.get("order_id")]
+        if order_ids:
+            locked_orders = self.env["restaurant.delivery.order"].browse(order_ids).filtered(
+                lambda order: order.state in self.LOCKED_ORDER_STATES
+            )
+            if locked_orders:
+                raise UserError(
+                    "No se pueden agregar lineas a pedidos entregados o cancelados."
+                )
+        return super().create(vals_list)
+
+    def write(self, vals):
+        locked_lines = self.filtered(
+            lambda line: line.order_id.state in self.LOCKED_ORDER_STATES
+        )
+        if locked_lines:
+            raise UserError(
+                "No se pueden modificar lineas de pedidos entregados o cancelados."
+            )
+        return super().write(vals)
+
+    def unlink(self):
+        locked_lines = self.filtered(
+            lambda line: line.order_id.state in self.LOCKED_ORDER_STATES
+        )
+        if locked_lines:
+            raise UserError(
+                "No se pueden eliminar lineas de pedidos entregados o cancelados."
+            )
+        return super().unlink()
+

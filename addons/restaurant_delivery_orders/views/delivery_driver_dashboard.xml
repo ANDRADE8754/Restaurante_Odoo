@@ -15,7 +15,7 @@
         </field>
     </record>
 
-    <record id="action_delivery_driver_performance" model="ir.actions.server">
+    <record id="action_delivery_driver_performance_server" model="ir.actions.server">
         <field name="name">Desempeño de repartidores</field>
         <field name="model_id" ref="base.model_res_users"/>
         <field name="state">code</field>
@@ -45,7 +45,7 @@ action = {
         id="menu_delivery_driver_performance"
         name="Desempeño repartidores"
         parent="menu_delivery_reports"
-        action="action_delivery_driver_performance"
+        action="action_delivery_driver_performance_server"
         groups="restaurant_casa_vieja_base.group_restaurant_administrador,restaurant_casa_vieja_base.group_restaurant_administracion,restaurant_casa_vieja_base.group_restaurant_mesero"
         sequence="10"/>
 </odoo>

@@ -28,6 +28,31 @@ class DeliveryOrder(models.Model):
         "cancelled": "restaurant_delivery_orders.mail_template_delivery_cancelled",
     }
     INVOICE_MAIL_TEMPLATE = "restaurant_delivery_orders.mail_template_delivery_invoice"
+    LOCKED_STATES = ("delivered", "cancelled")
+    LOCKED_WRITE_BLOCKED_FIELDS = {
+        "partner_id",
+        "phone",
+        "email",
+        "delivery_address",
+        "delivery_zone_id",
+        "order_datetime",
+        "estimated_delivery_datetime",
+        "delivery_user_id",
+        "responsible_id",
+        "line_ids",
+        "currency_id",
+        "delivery_fee",
+        "amount_untaxed",
+        "amount_tax",
+        "amount_total",
+        "payment_method",
+        "notes",
+        "kitchen_notes",
+        "sale_order_id",
+        "pos_order_id",
+        "source_channel",
+        "sale_order_ref",
+    }
 
     name = fields.Char(
         string="Referencia",
@@ -43,9 +68,9 @@ class DeliveryOrder(models.Model):
         required=True,
         tracking=True,
     )
-    phone = fields.Char(string="Teléfono")
-    email = fields.Char(string="Correo electrónico")
-    delivery_address = fields.Text(string="Dirección de entrega", required=True)
+    phone = fields.Char(string="Telefono")
+    email = fields.Char(string="Correo electronico")
+    delivery_address = fields.Text(string="Direccion de entrega", required=True)
     delivery_zone_id = fields.Many2one(
         comodel_name="restaurant.delivery.zone",
         string="Zona de entrega",
@@ -80,7 +105,7 @@ class DeliveryOrder(models.Model):
         selection=[
             ("draft", "Borrador"),
             ("confirmed", "Confirmado"),
-            ("preparing", "En preparación"),
+            ("preparing", "En preparacion"),
             ("on_the_way", "En camino"),
             ("delivered", "Entregado"),
             ("cancelled", "Cancelado"),
@@ -146,7 +171,7 @@ class DeliveryOrder(models.Model):
         readonly=True,
     )
     minutes_to_prepare = fields.Float(
-        string="Minutos a preparación",
+        string="Minutos a preparacion",
         compute="_compute_delivery_times",
     )
     minutes_to_dispatch = fields.Float(
@@ -164,7 +189,7 @@ class DeliveryOrder(models.Model):
     line_ids = fields.One2many(
         comodel_name="restaurant.delivery.order.line",
         inverse_name="order_id",
-        string="Líneas del pedido",
+        string="Lineas del pedido",
     )
     currency_id = fields.Many2one(
         comodel_name="res.currency",
@@ -202,7 +227,7 @@ class DeliveryOrder(models.Model):
             ("cash", "Efectivo"),
             ("transfer", "Transferencia"),
         ],
-        string="Método de pago",
+        string="Metodo de pago",
         default="cash",
     )
     pos_order_id = fields.Many2one(
@@ -229,7 +254,7 @@ class DeliveryOrder(models.Model):
         string="Estado de pago",
     )
     cancel_reason = fields.Text(
-        string="Motivo de cancelación",
+        string="Motivo de cancelacion",
         readonly=True,
         tracking=True,
     )
@@ -330,6 +355,73 @@ class DeliveryOrder(models.Model):
     def _get_claim_hours_limit(self):
         return self._get_int_config_param("restaurant.delivery_claim_hours_limit", 48)
 
+    @api.model
+    def _get_default_delivery_fee(self):
+        raw_value = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("restaurant.default_delivery_fee", "1.50")
+        )
+        try:
+            return float(raw_value)
+        except (TypeError, ValueError):
+            return 1.50
+
+    @api.model
+    def _get_delivery_drivers(self):
+        group = self.env.ref(
+            "restaurant_casa_vieja_base.group_restaurant_repartidor",
+            raise_if_not_found=False,
+        )
+        if not group:
+            return self.env["res.users"]
+        return group.users.filtered(lambda user: user.active and not user.share)
+
+    def _select_best_driver(self):
+        self.ensure_one()
+        drivers = self._get_delivery_drivers()
+        if not drivers:
+            return self.env["res.users"]
+
+        active_states = ("confirmed", "preparing", "on_the_way")
+        order_model = self.env["restaurant.delivery.order"].sudo()
+        workloads = []
+        for driver in drivers:
+            count = order_model.search_count(
+                [
+                    ("delivery_user_id", "=", driver.id),
+                    ("state", "in", active_states),
+                    ("id", "!=", self.id),
+                ]
+            )
+            workloads.append((count, driver.id))
+        if not workloads:
+            return self.env["res.users"]
+
+        _count, driver_id = min(workloads)
+        return drivers.browse(driver_id)
+
+    def _assign_driver_automatically(self):
+        for order in self:
+            if order.delivery_user_id:
+                continue
+            driver = order._select_best_driver()
+            if driver:
+                order.delivery_user_id = driver.id
+
+    def _ensure_estimated_delivery_datetime(self):
+        for order in self:
+            if order.estimated_delivery_datetime:
+                continue
+            order.estimated_delivery_datetime = order._calculate_estimated_delivery()
+
+    def _apply_dispatch_defaults(self):
+        dispatch_orders = self.filtered(
+            lambda order: order.state in ("confirmed", "preparing", "on_the_way")
+        )
+        dispatch_orders._assign_driver_automatically()
+        dispatch_orders._ensure_estimated_delivery_datetime()
+
     def _get_delivered_datetime(self):
         self.ensure_one()
         delivered_logs = self.state_log_ids.filtered(lambda log: log.state_to == "delivered")
@@ -372,15 +464,15 @@ class DeliveryOrder(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get("delivery_zone_id"):
-                zone = self.env["restaurant.delivery.zone"].browse(vals["delivery_zone_id"])
-                if zone.exists():
-                    vals["delivery_fee"] = zone.delivery_fee
+            # Fixed delivery fee for all orders.
+            vals["delivery_fee"] = self._get_default_delivery_fee()
             if vals.get("name", "Nuevo") == "Nuevo":
                 vals["name"] = self.env["ir.sequence"].next_by_code(
                     "restaurant.delivery.order"
                 ) or "Nuevo"
-        return super().create(vals_list)
+        orders = super().create(vals_list)
+        orders._apply_dispatch_defaults()
+        return orders
 
     @api.onchange("partner_id")
     def _onchange_partner_id(self):
@@ -391,12 +483,9 @@ class DeliveryOrder(models.Model):
 
     @api.onchange("delivery_zone_id")
     def _onchange_delivery_zone_id(self):
-        if self.delivery_zone_id:
-            self.delivery_fee = self.delivery_zone_id.delivery_fee
-            if not self.estimated_delivery_datetime:
-                self.estimated_delivery_datetime = fields.Datetime.now() + timedelta(
-                    minutes=self.delivery_zone_id.estimated_minutes or 0
-                )
+        # Zones are not used for pricing in fixed-fee mode.
+        if not self.estimated_delivery_datetime:
+            self.estimated_delivery_datetime = self._calculate_estimated_delivery()
 
     @api.onchange("delivery_user_id")
     def _onchange_delivery_user_id(self):
@@ -410,7 +499,7 @@ class DeliveryOrder(models.Model):
             return {
                 "warning": {
                     "title": "Repartidor con carga alta",
-                    "message": f"{repartidor.name} tiene {count} pedidos activos (máximo recomendado: {max_concurrent}). ¿Desea continuar?",
+                    "message": f"{repartidor.name} tiene {count} pedidos activos (maximo recomendado: {max_concurrent}). Desea continuar?",
                 }
             }
 
@@ -442,9 +531,9 @@ class DeliveryOrder(models.Model):
     def _validate_required_for_confirmation(self):
         for order in self:
             if not order.delivery_address:
-                raise UserError(_("No se puede confirmar un pedido sin dirección de entrega."))
+                raise UserError(_("No se puede confirmar un pedido sin direccion de entrega."))
             if not order.line_ids:
-                raise UserError(_("No se puede confirmar un pedido sin líneas."))
+                raise UserError(_("No se puede confirmar un pedido sin lineas."))
 
     def _calculate_estimated_delivery(self):
         self.ensure_one()
@@ -454,17 +543,8 @@ class DeliveryOrder(models.Model):
             "restaurant.delivery_default_travel_minutes", 25
         )
 
-        if (
-            "delivery_zone_id" in self._fields
-            and self.delivery_zone_id
-            and self.delivery_zone_id.estimated_minutes > 0
-        ):
-            travel_minutes = int(self.delivery_zone_id.estimated_minutes)
-
         if "restaurant.delivery.state.log" in self.env:
             domain = [("state", "=", "delivered")]
-            if "delivery_zone_id" in self._fields and self.delivery_zone_id:
-                domain.append(("delivery_zone_id", "=", self.delivery_zone_id.id))
 
             delivered_orders = self.search(
                 domain,
@@ -510,14 +590,10 @@ class DeliveryOrder(models.Model):
         )
         if not is_available and not is_admin:
             raise UserError(unavailable_message)
-        for order in self:
-            if order.delivery_zone_id and not order.delivery_zone_id.active:
-                raise UserError(_("La zona de entrega seleccionada no está activa."))
         self._validate_required_for_confirmation()
+        self.write({"delivery_fee": self._get_default_delivery_fee()})
         self.write({"state": "confirmed"})
-        for order in self:
-            if not order.estimated_delivery_datetime:
-                order.estimated_delivery_datetime = order._calculate_estimated_delivery()
+        self._apply_dispatch_defaults()
 
     def action_prepare(self):
         self._validate_state_transition("preparing")
@@ -544,10 +620,18 @@ class DeliveryOrder(models.Model):
                     move = order._create_invoice_internal()
                     move.action_post()
                     order._send_invoice_notification()
-                except Exception:
+                except Exception as err:
                     _logger.exception(
-                        "Error creando factura automática para pedido %s", order.id
+                        "Error creando factura automatica para pedido %s", order.id
                     )
+                    raise UserError(
+                        _(
+                            "No se pudo generar/publicar la factura del pedido %(order)s. "
+                            "Revise la configuracion contable y vuelva a intentar. "
+                            "Detalle: %(detail)s"
+                        )
+                        % {"order": order.name, "detail": str(err)}
+                    ) from err
 
     def _get_income_account_for_product(self, product):
         return (
@@ -558,7 +642,7 @@ class DeliveryOrder(models.Model):
     def _get_or_create_delivery_fee_product(self):
         template = self.env["product.template"].search(
             [
-                ("name", "=", "Costo de envío"),
+                ("name", "=", "Costo de envio"),
                 ("type", "=", "service"),
             ],
             limit=1,
@@ -566,7 +650,7 @@ class DeliveryOrder(models.Model):
         if not template:
             template = self.env["product.template"].create(
                 {
-                    "name": "Costo de envío",
+                    "name": "Costo de envio",
                     "type": "service",
                     "sale_ok": False,
                     "purchase_ok": False,
@@ -602,11 +686,11 @@ class DeliveryOrder(models.Model):
             fee_account = self._get_income_account_for_product(fee_product)
             if not fee_account:
                 raise UserError(
-                    _("El producto Costo de envío no tiene cuenta de ingreso configurada.")
+                    _("El producto Costo de envio no tiene cuenta de ingreso configurada.")
                 )
             invoice_lines.append((0, 0, {
                 "product_id": fee_product.id,
-                "name": _("Costo de envío"),
+                "name": _("Costo de envio"),
                 "quantity": 1.0,
                 "price_unit": self.delivery_fee,
                 "account_id": fee_account.id,
@@ -630,7 +714,7 @@ class DeliveryOrder(models.Model):
         if self.invoice_id:
             raise UserError(_("Este pedido ya tiene una factura asociada."))
         if not self.line_ids:
-            raise UserError(_("No se puede crear factura sin líneas de pedido."))
+            raise UserError(_("No se puede crear factura sin lineas de pedido."))
         move = self._create_invoice_internal()
         return {
             "type": "ir.actions.act_window",
@@ -714,6 +798,8 @@ class DeliveryOrder(models.Model):
             template.send_mail(self.id, force_send=False)
 
     def write(self, vals):
+        self._ensure_not_locked_for_update(vals)
+
         previous_states = {}
         if "state" in vals:
             previous_states = {order.id: order.state for order in self}
@@ -721,6 +807,7 @@ class DeliveryOrder(models.Model):
         res = super().write(vals)
         if "state" in vals:
             self._sync_sale_order_state()
+            self._apply_dispatch_defaults()
             log_values = []
             changed_records = []
             for order in self:
@@ -742,11 +829,32 @@ class DeliveryOrder(models.Model):
                     order._send_status_notification(new_state)
                 except Exception:
                     _logger.exception(
-                        "Error enviando notificación de estado '%s' para pedido %s",
+                        "Error enviando notificacion de estado '%s' para pedido %s",
                         new_state,
                         order.id,
                     )
         return res
+
+    def _ensure_not_locked_for_update(self, vals):
+        if self.env.context.get("allow_locked_delivery_write"):
+            return
+
+        blocked_fields = set(vals) & self.LOCKED_WRITE_BLOCKED_FIELDS
+        if not blocked_fields:
+            return
+
+        locked_orders = self.filtered(lambda order: order.state in self.LOCKED_STATES)
+        if not locked_orders:
+            return
+
+        order_refs = ", ".join(locked_orders.mapped("name"))
+        fields_list = ", ".join(sorted(blocked_fields))
+        raise UserError(
+            _(
+                "No se pueden modificar los campos %(fields)s en pedidos cerrados (%(orders)s)."
+            )
+            % {"fields": fields_list, "orders": order_refs}
+        )
 
     def _action_cancel_direct(self):
         self.write({"state": "cancelled"})
@@ -760,7 +868,7 @@ class DeliveryOrder(models.Model):
         ):
             raise UserError(
                 _(
-                    "Para cancelar pedidos en preparación o en camino, hágalo de forma individual."
+                    "Para cancelar pedidos en preparacion o en camino, hagalo de forma individual."
                 )
             )
 

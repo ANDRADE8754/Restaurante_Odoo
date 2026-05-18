@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_pos_pos_form_inherit_reservation" model="ir.ui.view">
+        <field name="name">pos.order.form.reservation</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id'][1]" position="after">
+                <field name="reservation_id"
+                       options="{'no_create': True}"
+                       domain="[('state','in',['draft','confirmed','seated']),('table_id','!=',False),('company_id','=',company_id)]"/>
+                <field name="reservation_state" invisible="not reservation_id"/>
+                <field name="reservation_table_id" invisible="not reservation_id"/>
+                <field name="reservation_guest_count" invisible="not reservation_id"/>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_mark_reservation_done"
+                        type="object"
+                        string="Cerrar reserva"
+                        class="btn-secondary"
+                        invisible="not reservation_id or reservation_state not in ['confirmed','seated']"/>
+                <button name="action_unlink_reservation"
+                        type="object"
+                        string="Desvincular reserva"
+                        class="btn-link"
+                        invisible="not reservation_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

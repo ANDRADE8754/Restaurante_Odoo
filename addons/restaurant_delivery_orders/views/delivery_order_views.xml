@@ -9,7 +9,6 @@
                 <field name="partner_id"/>
                 <field name="order_datetime"/>
                 <field name="estimated_delivery_datetime"/>
-                <field name="delivery_zone_id" optional="show"/>
                 <field name="delivery_user_id"/>
                 <field name="delivery_user_active_count" optional="hide"/>
                 <field name="amount_total"/>
@@ -84,7 +83,6 @@
                             <field name="phone"/>
                             <field name="email"/>
                             <field name="delivery_address"/>
-                            <field name="delivery_zone_id"/>
                         </group>
                         <group>
                             <field name="order_datetime"/>
@@ -112,7 +110,7 @@
                     </group>
                     <notebook>
                         <page string="Productos">
-                            <field name="line_ids">
+                            <field name="line_ids" readonly="state in ['delivered', 'cancelled']">
                                 <list editable="bottom">
                                     <field name="product_id"/>
                                     <field name="name"/>
@@ -263,7 +261,6 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="delivery_user_id"/>
-                <field name="delivery_zone_id"/>
                 <field name="source_channel"/>
                 <field name="sale_order_ref"/>
                 <filter name="draft" string="Borrador" domain="[('state', '=', 'draft')]"/>
@@ -290,7 +287,6 @@
                 <group expand="0" string="Agrupar por">
                     <filter name="group_by_state" string="Estado" context="{'group_by': 'state'}"/>
                     <filter name="group_by_delivery_user" string="Repartidor" context="{'group_by': 'delivery_user_id'}"/>
-                    <filter name="group_by_zone" string="Zona" context="{'group_by': 'delivery_zone_id'}"/>
                     <filter name="group_by_source_channel" string="Canal" context="{'group_by': 'source_channel'}"/>
                     <filter name="group_by_payment_method" string="Método de pago" context="{'group_by': 'payment_method'}"/>
                 </group>

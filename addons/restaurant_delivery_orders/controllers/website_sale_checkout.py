@@ -164,22 +164,8 @@ class WebsiteSaleCheckoutDeliveryFields(WebsiteSale):
         if payment_method in ("cash", "transfer"):
             vals["website_payment_method"] = payment_method
 
-        zone_id = extra_form_data.get("cv_delivery_zone_id")
-        zone_id_int = False
-        if zone_id:
-            try:
-                zone_id_int = int(zone_id)
-            except (TypeError, ValueError):
-                zone_id_int = False
-        if zone_id_int:
-            zone = (
-                request.env["restaurant.delivery.zone"]
-                .sudo()
-                .search([("id", "=", zone_id_int), ("active", "=", True)], limit=1)
-            )
-            vals["website_delivery_zone_id"] = zone.id or False
-        elif "cv_delivery_zone_id" in extra_form_data:
-            vals["website_delivery_zone_id"] = False
-
         if vals:
             order.sudo().write(vals)
+
+        # Keep checkout delivery line aligned with fixed configurable fee.
+        order._ensure_website_delivery_method()

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_table_reservation_list" model="ir.ui.view">
+        <field name="name">restaurant.table.reservation.list</field>
+        <field name="model">restaurant.table.reservation</field>
+        <field name="arch" type="xml">
+            <list string="Reservas de mesa" decoration-info="state == 'confirmed'" decoration-success="state == 'seated'" decoration-muted="state in ('done','cancelled','no_show')">
+                <field name="name"/>
+                <field name="start_datetime"/>
+                <field name="end_datetime"/>
+                <field name="table_id"/>
+                <field name="partner_id"/>
+                <field name="customer_name"/>
+                <field name="guest_count"/>
+                <field name="source_channel"/>
+                <field name="state"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_table_reservation_form" model="ir.ui.view">
+        <field name="name">restaurant.table.reservation.form</field>
+        <field name="model">restaurant.table.reservation</field>
+        <field name="arch" type="xml">
+            <form string="Reserva de mesa">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirmar" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_seat" type="object" string="Sentar cliente" class="oe_highlight" invisible="state != 'confirmed'"/>
+                    <button name="action_done" type="object" string="Finalizar" class="oe_highlight" invisible="state not in ('confirmed','seated')"/>
+                    <button name="action_no_show" type="object" string="No asistio" invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" type="object" string="Cancelar" invisible="state in ('done','cancelled','no_show')"/>
+                    <button name="action_reset_to_draft" type="object" string="Restablecer a borrador" invisible="state in ('draft','done')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,seated,done,cancelled,no_show"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Cliente">
+                            <field name="partner_id"/>
+                            <field name="customer_name"/>
+                            <field name="customer_phone"/>
+                            <field name="customer_email"/>
+                        </group>
+                        <group string="Reserva">
+                            <field name="table_id" options="{'no_create': True}"/>
+                            <field name="requested_area"/>
+                            <field name="guest_count"/>
+                            <field name="start_datetime"/>
+                            <field name="duration_minutes"/>
+                            <field name="end_datetime"/>
+                            <field name="reservation_date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Origen y referencias">
+                            <field name="source_channel"/>
+                            <field name="source_reference"/>
+                            <field name="pos_order_id" readonly="state in ('done','cancelled','no_show')"/>
+                        </group>
+                        <group string="Gestion">
+                            <field name="user_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Notas">
+                            <group>
+                                <field name="customer_note" placeholder="Notas del cliente..."/>
+                                <field name="notes" placeholder="Notas internas..."/>
+                                <field name="cancellation_reason" invisible="state not in ('cancelled','no_show')"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_table_reservation_kanban" model="ir.ui.view">
+        <field name="name">restaurant.table.reservation.kanban</field>
+        <field name="model">restaurant.table.reservation</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="customer_name"/>
+                <field name="table_id"/>
+                <field name="start_datetime"/>
+                <field name="guest_count"/>
+                <field name="source_channel"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_global_click oe_kanban_card">
+                            <strong><field name="name"/></strong>
+                            <div class="mt-2">
+                                <div><field name="partner_id"/> <field name="customer_name"/></div>
+                                <div>Mesa: <field name="table_id"/></div>
+                                <div>Inicio: <field name="start_datetime"/></div>
+                                <div>Personas: <field name="guest_count"/></div>
+                                <div>Origen: <field name="source_channel"/></div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_table_reservation_search" model="ir.ui.view">
+        <field name="name">restaurant.table.reservation.search</field>
+        <field name="model">restaurant.table.reservation</field>
+        <field name="arch" type="xml">
+            <search string="Buscar reservas">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="customer_name"/>
+                <field name="customer_phone"/>
+                <field name="table_id"/>
+                <field name="source_reference"/>
+                <filter name="filter_today" string="Hoy" domain="[('reservation_date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_future" string="Futuras" domain="[('start_datetime', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <separator/>
+                <filter name="filter_draft" string="Borrador" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_confirmed" string="Confirmadas" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="filter_seated" string="Sentados" domain="[('state', '=', 'seated')]"/>
+                <filter name="filter_done" string="Finalizadas" domain="[('state', '=', 'done')]"/>
+                <filter name="filter_cancelled" string="Canceladas" domain="[('state', '=', 'cancelled')]"/>
+                <filter name="filter_no_show" string="No asistio" domain="[('state', '=', 'no_show')]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
+                    <filter name="group_table" string="Mesa" context="{'group_by': 'table_id'}"/>
+                    <filter name="group_date" string="Fecha" context="{'group_by': 'reservation_date'}"/>
+                    <filter name="group_source" string="Origen" context="{'group_by': 'source_channel'}"/>
+                    <filter name="group_company" string="Compania" context="{'group_by': 'company_id'}" groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_table_reservation" model="ir.actions.act_window">
+        <field name="name">Reservas de mesa</field>
+        <field name="res_model">restaurant.table.reservation</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="search_view_id" ref="view_table_reservation_search"/>
+        <field name="context">{'search_default_filter_future': 1}</field>
+    </record>
+</odoo>

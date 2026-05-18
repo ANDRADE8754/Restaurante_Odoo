@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="website_table_reservation_form" name="Website Table Reservation Form">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="s_text_block pt48 pb48">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <h1 class="mb-2">Reserva tu mesa</h1>
+                                <p class="text-muted mb-4">
+                                    Completa el formulario y te asignaremos la mejor mesa disponible.
+                                </p>
+
+                                <t t-if="error_message">
+                                    <div class="alert alert-danger" role="alert">
+                                        <t t-esc="error_message"/>
+                                    </div>
+                                </t>
+
+                                <form action="/reservas-mesa/enviar" method="post" class="card shadow-sm">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <div class="card-body p-4">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label" for="customer_name">Nombre completo</label>
+                                                <input id="customer_name" name="customer_name" type="text" required="required" class="form-control" t-att-value="form_values.get('customer_name', '')"/>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label" for="customer_phone">Telefono</label>
+                                                <input id="customer_phone" name="customer_phone" type="text" required="required" class="form-control" t-att-value="form_values.get('customer_phone', '')"/>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label" for="customer_email">Correo electronico</label>
+                                                <input id="customer_email" name="customer_email" type="email" class="form-control" t-att-value="form_values.get('customer_email', '')"/>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label" for="reservation_date">Fecha</label>
+                                                <input id="reservation_date" name="reservation_date" type="date" required="required" class="form-control" t-att-value="form_values.get('reservation_date', '')"/>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label" for="start_time">Hora de inicio</label>
+                                                <input id="start_time" name="start_time" type="time" required="required" class="form-control" t-att-value="form_values.get('start_time', '')"/>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label" for="guest_count">Cantidad de personas</label>
+                                                <input id="guest_count" name="guest_count" type="number" min="1" required="required" class="form-control" t-att-value="form_values.get('guest_count', '2')"/>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label" for="customer_note">Nota (opcional)</label>
+                                                <textarea id="customer_note" name="customer_note" rows="3" class="form-control"><t t-esc="form_values.get('customer_note', '')"/></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer bg-white border-0 p-4 pt-0">
+                                        <button type="submit" class="btn btn-primary btn-lg w-100">Reservar mesa</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+
+    <template id="website_table_reservation_confirmation" name="Website Table Reservation Confirmation">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="s_text_block pt48 pb48">
+                    <div class="container">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="card shadow-sm">
+                                    <div class="card-body p-4">
+                                        <h1 class="mb-3">Reserva confirmada</h1>
+                                        <p class="mb-4">Tu reserva fue registrada correctamente. Te esperamos en Casa Vieja.</p>
+
+                                        <div class="table-responsive">
+                                            <table class="table table-borderless mb-0">
+                                                <tbody>
+                                                    <tr>
+                                                        <th class="ps-0" scope="row">Referencia</th>
+                                                        <td class="text-end"><t t-esc="reservation.get('reference')"/></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="ps-0" scope="row">Cliente</th>
+                                                        <td class="text-end"><t t-esc="reservation.get('customer_name')"/></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="ps-0" scope="row">Fecha</th>
+                                                        <td class="text-end"><t t-esc="reservation.get('date')"/></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="ps-0" scope="row">Hora</th>
+                                                        <td class="text-end"><t t-esc="reservation.get('time')"/></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="ps-0" scope="row">Mesa</th>
+                                                        <td class="text-end"><t t-esc="reservation.get('table_name')"/></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th class="ps-0" scope="row">Personas</th>
+                                                        <td class="text-end"><t t-esc="reservation.get('guest_count')"/></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <a href="/reservas-mesa" class="btn btn-outline-primary">Crear otra reserva</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -37,12 +37,7 @@ class DeliveryOrder(models.Model):
             "phone": partner.phone or partner.mobile,
             "email": partner.email,
             "delivery_address": address,
-            "delivery_zone_id": sale_order.website_delivery_zone_id.id,
-            "delivery_fee": (
-                sale_order.website_delivery_zone_id.delivery_fee
-                if sale_order.website_delivery_zone_id
-                else sale_order._get_default_delivery_fee()
-            ),
+            "delivery_fee": sale_order._get_default_delivery_fee(),
             "order_datetime": fields.Datetime.now(),
             "payment_method": sale_order.website_payment_method or "cash",
             "notes": sale_order.website_delivery_note,

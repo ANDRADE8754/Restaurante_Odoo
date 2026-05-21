@@ -41,29 +41,29 @@
                     </div>
                     <group>
                         <group string="Cliente">
-                            <field name="partner_id"/>
-                            <field name="customer_name"/>
-                            <field name="customer_phone"/>
-                            <field name="customer_email"/>
+                            <field name="partner_id" readonly="state in ('done','cancelled','no_show')"/>
+                            <field name="customer_name" readonly="state in ('done','cancelled','no_show')"/>
+                            <field name="customer_phone" readonly="state in ('done','cancelled','no_show')"/>
+                            <field name="customer_email" readonly="state in ('done','cancelled','no_show')"/>
                         </group>
                         <group string="Reserva">
-                            <field name="table_id" options="{'no_create': True}"/>
-                            <field name="requested_area"/>
-                            <field name="guest_count"/>
-                            <field name="start_datetime"/>
-                            <field name="duration_minutes"/>
-                            <field name="end_datetime"/>
+                            <field name="table_id" options="{'no_create': True}" readonly="state in ('done','cancelled','no_show')"/>
+                            <field name="requested_area" readonly="state in ('done','cancelled','no_show')"/>
+                            <field name="guest_count" readonly="state in ('done','cancelled','no_show')"/>
+                            <field name="start_datetime" readonly="state in ('done','cancelled','no_show')"/>
+                            <field name="duration_minutes" readonly="state in ('done','cancelled','no_show')"/>
+                            <field name="end_datetime" readonly="state in ('done','cancelled','no_show')"/>
                             <field name="reservation_date"/>
                         </group>
                     </group>
                     <group>
                         <group string="Origen y referencias">
-                            <field name="source_channel"/>
-                            <field name="source_reference"/>
+                            <field name="source_channel" readonly="state in ('done','cancelled','no_show')"/>
+                            <field name="source_reference" readonly="state in ('done','cancelled','no_show')"/>
                             <field name="pos_order_id" readonly="state in ('done','cancelled','no_show')"/>
                         </group>
                         <group string="Gestion">
-                            <field name="user_id"/>
+                            <field name="user_id" readonly="state in ('done','cancelled','no_show')"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="active" invisible="1"/>
                         </group>
@@ -71,8 +71,8 @@
                     <notebook>
                         <page string="Notas">
                             <group>
-                                <field name="customer_note" placeholder="Notas del cliente..."/>
-                                <field name="notes" placeholder="Notas internas..."/>
+                                <field name="customer_note" placeholder="Notas del cliente..." readonly="state in ('done','cancelled','no_show')"/>
+                                <field name="notes" placeholder="Notas internas..." readonly="state in ('done','cancelled','no_show')"/>
                                 <field name="cancellation_reason" invisible="state not in ('cancelled','no_show')"/>
                             </group>
                         </page>
@@ -80,6 +80,26 @@
                 </sheet>
                 <chatter/>
             </form>
+        </field>
+    </record>
+
+    <record id="view_table_reservation_calendar" model="ir.ui.view">
+        <field name="name">restaurant.table.reservation.calendar</field>
+        <field name="model">restaurant.table.reservation</field>
+        <field name="arch" type="xml">
+            <calendar string="Calendario de reservas"
+                      date_start="start_datetime"
+                      date_stop="end_datetime"
+                      color="table_id"
+                      mode="week"
+                      quick_create="false">
+                <field name="name"/>
+                <field name="table_id"/>
+                <field name="customer_name"/>
+                <field name="partner_id"/>
+                <field name="guest_count"/>
+                <field name="state"/>
+            </calendar>
         </field>
     </record>
 
@@ -126,7 +146,9 @@
                 <field name="table_id"/>
                 <field name="source_reference"/>
                 <filter name="filter_today" string="Hoy" domain="[('reservation_date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_tomorrow" string="Manana" domain="[('reservation_date', '=', (context_today() + relativedelta(days=1)).strftime('%Y-%m-%d'))]"/>
                 <filter name="filter_future" string="Futuras" domain="[('start_datetime', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="filter_this_week" string="Esta semana" domain="[('reservation_date', '&gt;=', context_today().strftime('%Y-%m-%d')), ('reservation_date', '&lt;=', (context_today() + relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
                 <separator/>
                 <filter name="filter_draft" string="Borrador" domain="[('state', '=', 'draft')]"/>
                 <filter name="filter_confirmed" string="Confirmadas" domain="[('state', '=', 'confirmed')]"/>
@@ -134,6 +156,7 @@
                 <filter name="filter_done" string="Finalizadas" domain="[('state', '=', 'done')]"/>
                 <filter name="filter_cancelled" string="Canceladas" domain="[('state', '=', 'cancelled')]"/>
                 <filter name="filter_no_show" string="No asistio" domain="[('state', '=', 'no_show')]"/>
+                <filter name="filter_closed" string="Cerradas" domain="[('state', 'in', ['done', 'cancelled', 'no_show'])]"/>
                 <group expand="0" string="Agrupar por">
                     <filter name="group_state" string="Estado" context="{'group_by': 'state'}"/>
                     <filter name="group_table" string="Mesa" context="{'group_by': 'table_id'}"/>
@@ -148,7 +171,7 @@
     <record id="action_table_reservation" model="ir.actions.act_window">
         <field name="name">Reservas de mesa</field>
         <field name="res_model">restaurant.table.reservation</field>
-        <field name="view_mode">list,kanban,form</field>
+        <field name="view_mode">calendar,list,kanban,form</field>
         <field name="search_view_id" ref="view_table_reservation_search"/>
         <field name="context">{'search_default_filter_future': 1}</field>
     </record>

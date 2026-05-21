@@ -38,6 +38,12 @@ solapamiento y campos preparados para integracion con Website y POS.
     "demo": [
         "data/demo_tables.xml",
     ],
+    "assets": {
+        "point_of_sale._assets_pos": [
+            "restaurant_table_reservations/static/src/js/pos_reservation_button.js",
+            "restaurant_table_reservations/static/src/xml/pos_reservation_button.xml",
+        ],
+    },
     "installable": True,
     "application": True,
     "auto_install": False,

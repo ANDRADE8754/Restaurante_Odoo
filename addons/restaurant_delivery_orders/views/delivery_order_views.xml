@@ -79,20 +79,20 @@
                     <group>
                         <group>
                             <field name="name"/>
-                            <field name="partner_id"/>
-                            <field name="phone"/>
-                            <field name="email"/>
-                            <field name="delivery_address"/>
+                            <field name="partner_id" readonly="state in ['delivered', 'cancelled']"/>
+                            <field name="phone" readonly="state in ['delivered', 'cancelled']"/>
+                            <field name="email" readonly="state in ['delivered', 'cancelled']"/>
+                            <field name="delivery_address" readonly="state in ['delivered', 'cancelled']"/>
                         </group>
                         <group>
-                            <field name="order_datetime"/>
-                            <field name="estimated_delivery_datetime"/>
+                            <field name="order_datetime" readonly="state in ['delivered', 'cancelled']"/>
+                            <field name="estimated_delivery_datetime" readonly="state in ['delivered', 'cancelled']"/>
                             <button name="action_recalculate_eta"
                                     string="Recalcular ETA"
                                     type="object"
                                     class="btn-link"
                                     invisible="state not in ['confirmed', 'preparing']"/>
-                            <field name="delivery_user_id"/>
+                            <field name="delivery_user_id" readonly="state in ['delivered', 'cancelled']"/>
                             <div class="oe_inline" invisible="not delivery_user_id">
                                 <span class="me-1">
                                     <i class="fa fa-tasks" title="Pedidos activos"/>
@@ -102,10 +102,10 @@
                                     <i class="fa fa-exclamation-triangle" title="Repartidor sobrecargado"/>
                                 </span>
                             </div>
-                            <field name="responsible_id"/>
+                            <field name="responsible_id" readonly="state in ['delivered', 'cancelled']"/>
                             <field name="source_channel" readonly="1"/>
                             <field name="sale_order_ref" readonly="1"/>
-                            <field name="payment_method" widget="selection"/>
+                            <field name="payment_method" widget="selection" readonly="state in ['delivered', 'cancelled']"/>
                         </group>
                     </group>
                     <notebook>
@@ -127,7 +127,7 @@
                                 <field name="currency_id" invisible="1"/>
                                 <field name="amount_untaxed"/>
                                 <field name="amount_tax"/>
-                                <field name="delivery_fee"/>
+                                <field name="delivery_fee" readonly="state in ['delivered', 'cancelled']"/>
                                 <field name="amount_total"/>
                             </group>
                         </page>
@@ -193,8 +193,8 @@
                             </group>
                         </page>
                         <page string="Notas">
-                            <field name="notes"/>
-                            <field name="kitchen_notes"/>
+                            <field name="notes" readonly="state in ['delivered', 'cancelled']"/>
+                            <field name="kitchen_notes" readonly="state in ['delivered', 'cancelled']"/>
                             <field name="cancel_reason"
                                    readonly="1"
                                    invisible="state != 'cancelled'"/>
@@ -263,6 +263,7 @@
                 <field name="delivery_user_id"/>
                 <field name="source_channel"/>
                 <field name="sale_order_ref"/>
+                <filter name="pending" string="Pendientes" domain="[('state', 'in', ['draft', 'confirmed'])]"/>
                 <filter name="draft" string="Borrador" domain="[('state', '=', 'draft')]"/>
                 <filter name="confirmed" string="Confirmado" domain="[('state', '=', 'confirmed')]"/>
                 <filter name="preparing" string="En preparación" domain="[('state', '=', 'preparing')]"/>
@@ -271,6 +272,10 @@
                 <filter name="cancelled" string="Cancelado" domain="[('state', '=', 'cancelled')]"/>
                 <filter name="source_website_sale" string="Origen web" domain="[('source_channel', '=', 'website_sale')]"/>
                 <filter name="source_manual" string="Origen manual" domain="[('source_channel', '=', 'manual')]"/>
+                <filter name="without_driver" string="Sin repartidor" domain="[('delivery_user_id', '=', False), ('state', 'in', ['confirmed', 'preparing', 'on_the_way'])]"/>
+                <filter name="eta_overdue" string="Con retraso" domain="[('state', 'in', ['confirmed', 'preparing', 'on_the_way']), ('estimated_delivery_datetime', '!=', False), ('estimated_delivery_datetime', '&lt;', datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))]"/>
+                <filter name="my_assigned" string="Mis entregas" domain="[('delivery_user_id', '=', uid)]"/>
+                <filter name="active_workflow" string="Activos" domain="[('state', 'in', ['confirmed', 'preparing', 'on_the_way'])]"/>
                 <filter name="fully_rated" string="Calificados" domain="[('is_fully_rated', '=', True)]"/>
                 <filter name="not_fully_rated" string="Sin calificar" domain="[('is_fully_rated', '=', False)]"/>
                 <separator/>
@@ -301,6 +306,71 @@
         <field name="search_view_id" ref="view_delivery_order_search"/>
     </record>
 
+    <record id="view_delivery_order_repartidor_list" model="ir.ui.view">
+        <field name="name">restaurant.delivery.order.repartidor.list</field>
+        <field name="model">restaurant.delivery.order</field>
+        <field name="arch" type="xml">
+            <list string="Mis entregas">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="phone"/>
+                <field name="delivery_address"/>
+                <field name="estimated_delivery_datetime"/>
+                <field name="notes"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_delivery_order_repartidor_form" model="ir.ui.view">
+        <field name="name">restaurant.delivery.order.repartidor.form</field>
+        <field name="model">restaurant.delivery.order</field>
+        <field name="arch" type="xml">
+            <form string="Entrega">
+                <header>
+                    <button name="action_send"
+                            string="Marcar en camino"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'preparing'"/>
+                    <button name="action_deliver"
+                            string="Marcar entregado"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'on_the_way'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="confirmed,preparing,on_the_way,delivered,cancelled"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Cliente">
+                            <field name="partner_id" readonly="1"/>
+                            <field name="phone" readonly="1"/>
+                            <field name="delivery_address" readonly="1"/>
+                        </group>
+                        <group string="Entrega">
+                            <field name="estimated_delivery_datetime" readonly="1"/>
+                            <field name="notes" readonly="1"/>
+                            <field name="kitchen_notes" readonly="1"/>
+                            <field name="delivery_user_id" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_restaurant_delivery_my_orders" model="ir.actions.act_window">
+        <field name="name">Mis entregas</field>
+        <field name="res_model">restaurant.delivery.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_delivery_order_repartidor_list"/>
+        <field name="views" eval="[(ref('restaurant_delivery_orders.view_delivery_order_repartidor_list'), 'list'), (ref('restaurant_delivery_orders.view_delivery_order_repartidor_form'), 'form')]"/>
+        <field name="search_view_id" ref="view_delivery_order_search"/>
+        <field name="domain">[('delivery_user_id', '=', uid)]</field>
+        <field name="context">{'search_default_active_workflow': 1, 'search_default_my_assigned': 1}</field>
+    </record>
+
     <menuitem
         id="menu_delivery_operations"
         name="Operaciones"
@@ -312,6 +382,15 @@
         name="Pedidos a domicilio"
         parent="menu_delivery_operations"
         action="action_restaurant_delivery_order"
+        groups="restaurant_casa_vieja_base.group_restaurant_administrador,restaurant_casa_vieja_base.group_restaurant_administracion,restaurant_casa_vieja_base.group_restaurant_mesero,restaurant_casa_vieja_base.group_restaurant_cocinero"
         sequence="10"/>
+
+    <menuitem
+        id="menu_delivery_my_orders"
+        name="Mis entregas"
+        parent="menu_delivery_operations"
+        action="action_restaurant_delivery_my_orders"
+        groups="restaurant_casa_vieja_base.group_restaurant_repartidor"
+        sequence="15"/>
 </odoo>
 

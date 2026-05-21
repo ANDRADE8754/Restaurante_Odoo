@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
 
         <record id="rule_delivery_order_repartidor_own_orders" model="ir.rule">
             <field name="name">Delivery Order - Repartidor solo sus pedidos</field>

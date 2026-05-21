@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="restaurant_table_reservations.ControlButtonsReservation"
+       t-inherit="point_of_sale.ControlButtons"
+       t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('control-buttons')]" position="inside">
+            <button class="btn btn-light btn-lg flex-shrink-0"
+                    t-on-click="onClickCvSelectReservation">
+                <i class="fa fa-calendar me-1"/>
+                <t t-esc="cvReservationButtonLabel"/>
+            </button>
+        </xpath>
+    </t>
+</templates>

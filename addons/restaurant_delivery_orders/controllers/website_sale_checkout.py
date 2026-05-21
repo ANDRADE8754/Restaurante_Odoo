@@ -150,19 +150,17 @@ class WebsiteSaleCheckoutDeliveryFields(WebsiteSale):
         if not order:
             return
 
-        vals = {}
-
         delivery_address = (extra_form_data.get("cv_delivery_address") or "").strip()
-        if delivery_address:
-            vals["website_delivery_address"] = delivery_address
-
         delivery_note = (extra_form_data.get("cv_delivery_note") or "").strip()
-        if delivery_note:
-            vals["website_delivery_note"] = delivery_note
+        payment_method = (extra_form_data.get("cv_payment_method") or "").strip()
+        if payment_method not in ("cash", "transfer"):
+            payment_method = "cash"
 
-        payment_method = extra_form_data.get("cv_payment_method")
-        if payment_method in ("cash", "transfer"):
-            vals["website_payment_method"] = payment_method
+        vals = {
+            "website_delivery_address": delivery_address or False,
+            "website_delivery_note": delivery_note or False,
+            "website_payment_method": payment_method,
+        }
 
         if vals:
             order.sudo().write(vals)

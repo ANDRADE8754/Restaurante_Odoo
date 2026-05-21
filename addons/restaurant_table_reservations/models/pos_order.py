@@ -47,6 +47,27 @@ class PosOrder(models.Model):
     ]
 
     # ------------------------------------------------------------------
+    # POS UI bridge
+    # ------------------------------------------------------------------
+    @api.model
+    def _order_fields(self, ui_order):
+        """Mapea campos enviados por la UI POS hacia pos.order."""
+        vals = super()._order_fields(ui_order)
+
+        reservation_id = ui_order.get("cv_reservation_id")
+        if reservation_id:
+            try:
+                vals["reservation_id"] = int(reservation_id)
+            except (TypeError, ValueError):
+                _logger.warning(
+                    "Valor invalido de cv_reservation_id en UI order: %s", reservation_id
+                )
+        elif "cv_reservation_id" in ui_order:
+            vals["reservation_id"] = False
+
+        return vals
+
+    # ------------------------------------------------------------------
     # Constraints
     # ------------------------------------------------------------------
     @api.constrains("reservation_id")

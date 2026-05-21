@@ -29,6 +29,7 @@ class DeliveryOrder(models.Model):
     }
     INVOICE_MAIL_TEMPLATE = "restaurant_delivery_orders.mail_template_delivery_invoice"
     LOCKED_STATES = ("delivered", "cancelled")
+    DRIVER_WRITE_ALLOWED_FIELDS = {"state"}
     LOCKED_WRITE_BLOCKED_FIELDS = {
         "partner_id",
         "phone",
@@ -601,6 +602,14 @@ class DeliveryOrder(models.Model):
 
     def action_send(self):
         self._validate_state_transition("on_the_way")
+        is_admin = self.env.user.has_group(
+            "restaurant_casa_vieja_base.group_restaurant_administrador"
+        )
+        for order in self:
+            if not is_admin and order.delivery_user_id and order.delivery_user_id != self.env.user:
+                raise UserError(
+                    _("Solo el repartidor asignado puede marcar este pedido como en camino.")
+                )
         self.write({"state": "on_the_way"})
 
     def action_deliver(self):
@@ -798,6 +807,7 @@ class DeliveryOrder(models.Model):
             template.send_mail(self.id, force_send=False)
 
     def write(self, vals):
+        self._ensure_driver_write_restrictions(vals)
         self._ensure_not_locked_for_update(vals)
 
         previous_states = {}
@@ -834,6 +844,34 @@ class DeliveryOrder(models.Model):
                         order.id,
                     )
         return res
+
+    def _ensure_driver_write_restrictions(self, vals):
+        if not vals:
+            return
+        if self.env.context.get("allow_delivery_driver_write"):
+            return
+
+        user = self.env.user
+        is_driver = user.has_group("restaurant_casa_vieja_base.group_restaurant_repartidor")
+        if not is_driver:
+            return
+
+        is_admin = user.has_group("restaurant_casa_vieja_base.group_restaurant_administrador")
+        is_admin_ops = user.has_group("restaurant_casa_vieja_base.group_restaurant_administracion")
+        if is_admin or is_admin_ops:
+            return
+
+        blocked_fields = set(vals) - self.DRIVER_WRITE_ALLOWED_FIELDS
+        if not blocked_fields:
+            return
+
+        raise UserError(
+            _(
+                "Como repartidor solo puede actualizar el estado del pedido. "
+                "Campos bloqueados: %(fields)s"
+            )
+            % {"fields": ", ".join(sorted(blocked_fields))}
+        )
 
     def _ensure_not_locked_for_update(self, vals):
         if self.env.context.get("allow_locked_delivery_write"):

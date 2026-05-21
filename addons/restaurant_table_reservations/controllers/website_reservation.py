@@ -16,14 +16,33 @@ _logger = logging.getLogger(__name__)
 class WebsiteTableReservationController(Controller):
     DEFAULT_RESERVATION_MINUTES = 90
     SESSION_CONFIRM_KEY = "restaurant_table_reservation_last_confirmation"
+    DEFAULT_WEBSITE_TZ = "America/Guayaquil"
     EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    PHONE_RE = re.compile(r"^[0-9+\-\s()]{7,20}$")
 
     def _get_website_company(self):
         return request.website.company_id or request.env.company
 
+    def _get_reservation_timezone(self):
+        company = self._get_website_company()
+        tz_name = (
+            request.env["ir.config_parameter"]
+            .sudo()
+            .get_param("restaurant.reservation_website_tz", "")
+            .strip()
+            or getattr(company, "tz", False)
+            or request.website.partner_id.tz
+            or self.DEFAULT_WEBSITE_TZ
+        )
+        try:
+            return pytz.timezone(tz_name)
+        except Exception:
+            return pytz.timezone(self.DEFAULT_WEBSITE_TZ)
+
     def _default_form_values(self):
         now_utc = fields.Datetime.to_datetime(fields.Datetime.now())
-        now_local = fields.Datetime.context_timestamp(request.env.user, now_utc)
+        timezone = self._get_reservation_timezone()
+        now_local = pytz.UTC.localize(now_utc).astimezone(timezone)
         suggested = now_local + timedelta(hours=1)
         rounded_minute = (suggested.minute // 15) * 15
         suggested = suggested.replace(minute=rounded_minute, second=0, microsecond=0)
@@ -60,11 +79,7 @@ class WebsiteTableReservationController(Controller):
                 "La fecha u hora de la reserva no tiene un formato valido."
             ) from err
 
-        tz_name = request.context.get("tz") or request.env.user.tz or "UTC"
-        try:
-            timezone = pytz.timezone(tz_name)
-        except Exception:
-            timezone = pytz.UTC
+        timezone = self._get_reservation_timezone()
 
         try:
             local_dt = timezone.localize(naive_local, is_dst=None)
@@ -135,6 +150,12 @@ class WebsiteTableReservationController(Controller):
         if not form_values["customer_phone"]:
             return self._render_form(
                 "Debes ingresar un telefono de contacto.",
+                form_values=form_values,
+                status=400,
+            )
+        if not self.PHONE_RE.match(form_values["customer_phone"]):
+            return self._render_form(
+                "El telefono no es valido.",
                 form_values=form_values,
                 status=400,
             )
@@ -262,9 +283,10 @@ class WebsiteTableReservationController(Controller):
                 status=500,
             )
 
-        local_start = fields.Datetime.context_timestamp(
-            request.env.user, reservation.start_datetime
-        )
+        timezone = self._get_reservation_timezone()
+        local_start = pytz.UTC.localize(
+            fields.Datetime.to_datetime(reservation.start_datetime)
+        ).astimezone(timezone)
 
         request.session[self.SESSION_CONFIRM_KEY] = {
             "reference": reservation.name,

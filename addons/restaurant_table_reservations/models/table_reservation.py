@@ -24,6 +24,11 @@ class TableReservation(models.Model):
         "source_channel",
         "source_reference",
         "pos_order_id",
+        "notes",
+        "customer_note",
+        "cancellation_reason",
+        "user_id",
+        "active",
         "company_id",
     }
 
@@ -504,6 +509,64 @@ class TableReservation(models.Model):
         vals = dict(vals or {})
         vals["source_channel"] = vals.get("source_channel") or "pos"
         return vals
+
+    @api.model
+    def find_linkable_reservation_for_pos(self, reference, company_id=False):
+        """Busca una reserva activa utilizable desde POS por referencia."""
+        query = (reference or "").strip()
+        if not query:
+            return False
+
+        domain = [
+            ("state", "in", list(self.ACTIVE_STATES)),
+            ("table_id", "!=", False),
+            "|",
+            ("name", "ilike", query),
+            ("source_reference", "ilike", query),
+        ]
+        if company_id:
+            domain.append(("company_id", "=", company_id))
+
+        reservation = self.search(domain, order="start_datetime asc, id asc", limit=1)
+        if not reservation:
+            return False
+        return {
+            "id": reservation.id,
+            "name": reservation.name,
+            "table_name": reservation.table_id.display_name,
+            "state": reservation.state,
+            "start_datetime": fields.Datetime.to_string(reservation.start_datetime),
+        }
+
+    @api.model
+    def get_active_reservations_for_pos(self, company_id=False, limit=30):
+        """Lista reservas activas para seleccion rapida desde POS."""
+        try:
+            limit_int = max(1, min(int(limit or 30), 100))
+        except (TypeError, ValueError):
+            limit_int = 30
+
+        domain = [
+            ("state", "in", list(self.ACTIVE_STATES)),
+            ("table_id", "!=", False),
+        ]
+        if company_id:
+            domain.append(("company_id", "=", company_id))
+
+        reservations = self.search(domain, order="start_datetime asc, id asc", limit=limit_int)
+        payload = []
+        for reservation in reservations:
+            payload.append(
+                {
+                    "id": reservation.id,
+                    "name": reservation.name,
+                    "table_name": reservation.table_id.display_name or reservation.table_id.name,
+                    "state": reservation.state,
+                    "start_datetime": fields.Datetime.to_string(reservation.start_datetime),
+                    "customer_name": reservation.customer_name or reservation.partner_id.name or "",
+                }
+            )
+        return payload
 
     # ------------------------------------------------------------------
     # Actions

@@ -24,13 +24,6 @@
         <xpath expr="//li[@id='portal_breadcrumbs_sale']" position="attributes">
             <attribute name="t-if">False</attribute>
         </xpath>
-        <xpath expr="//li[@t-elif=&quot;page_name == 'order' or sale_order and sale_order.state not in ('sent', 'cancel')&quot;]" position="replace">
-            <li t-elif="page_name == 'order' or sale_order and sale_order.state not in ('sent', 'cancel')"
-                t-attf-class="breadcrumb-item #{'active ' if not sale_order else ''}">
-                <a t-if="sale_order" t-attf-href="/my/orders?{{ keep_query() }}">Pedidos</a>
-                <t t-else="">Pedidos</t>
-            </li>
-        </xpath>
     </template>
 
     <template
@@ -43,7 +36,7 @@
         </xpath>
         <xpath expr="//div[@role='alert']" position="replace">
             <div t-if="not orders" class="alert alert-warning" role="alert">
-                AÃºn no tienes pedidos registrados.
+                Aun no tienes pedidos registrados.
             </div>
         </xpath>
         <xpath expr="//thead/tr/th[1]/span[@class='d-none d-md-inline']" position="replace">
@@ -165,6 +158,33 @@
                         border: 1px solid var(--cv-border);
                         border-radius: .8rem;
                         padding: .8rem;
+                    }
+                    .cv_timeline {
+                        margin-top: .75rem;
+                        display: grid;
+                        gap: .6rem;
+                        grid-template-columns: repeat(4, minmax(110px, 1fr));
+                    }
+                    .cv_timeline_step {
+                        border: 1px solid var(--cv-border);
+                        border-radius: .7rem;
+                        padding: .55rem .6rem;
+                        background: #f8fafc;
+                        color: var(--cv-muted);
+                        font-size: .8rem;
+                        text-align: center;
+                    }
+                    .cv_timeline_step.is_done {
+                        background: #e8f3ee;
+                        color: var(--cv-accent);
+                        border-color: #cfe7dc;
+                        font-weight: 600;
+                    }
+                    .cv_timeline_step.is_current {
+                        background: #fff7e6;
+                        color: #8a5b00;
+                        border-color: #f3d08a;
+                        font-weight: 700;
                     }
                     .cv_status_badge {
                         background: var(--cv-accent-soft);
@@ -289,18 +309,38 @@
                         <div class="cv_kpi">
                             <span class="cv_kpi_label">Repartidor</span>
                             <span class="cv_kpi_value">
-                                <t t-esc="delivery_order.delivery_user_id.name if delivery_order.delivery_user_id else 'Pendiente de asignaciÃ³n'"/>
+                                <t t-esc="delivery_order.delivery_user_id.name if delivery_order.delivery_user_id else 'Pendiente de asignacion'"/>
                             </span>
                         </div>
                         <div class="cv_kpi">
-                            <span class="cv_kpi_label">DirecciÃ³n</span>
+                            <span class="cv_kpi_label">Direccion</span>
                             <span class="cv_kpi_value"><t t-esc="delivery_address"/></span>
+                        </div>
+                        <div class="cv_kpi">
+                            <span class="cv_kpi_label">Metodo de pago</span>
+                            <span class="cv_kpi_value">
+                                <t t-esc="dict(delivery_order._fields['payment_method'].selection).get(delivery_order.payment_method) or 'No definido'"/>
+                            </span>
                         </div>
                     </div>
 
                     <div class="cv_status_strip">
                         <strong>Estado actual:</strong>
                         <span class="ms-1" t-esc="delivery_state_label"/>
+                        <div class="cv_timeline">
+                            <div t-attf-class="cv_timeline_step #{'is_current' if delivery_order.state == 'confirmed' else ('is_done' if delivery_order.state in ['preparing','on_the_way','delivered'] else '')}">
+                                Confirmado
+                            </div>
+                            <div t-attf-class="cv_timeline_step #{'is_current' if delivery_order.state == 'preparing' else ('is_done' if delivery_order.state in ['on_the_way','delivered'] else '')}">
+                                Preparando
+                            </div>
+                            <div t-attf-class="cv_timeline_step #{'is_current' if delivery_order.state == 'on_the_way' else ('is_done' if delivery_order.state == 'delivered' else '')}">
+                                En camino
+                            </div>
+                            <div t-attf-class="cv_timeline_step #{'is_current' if delivery_order.state == 'delivered' else ''}">
+                                Entregado
+                            </div>
+                        </div>
                     </div>
 
                     <div class="cv_items_card">
@@ -382,7 +422,7 @@
                         Ahora puedes calificar tu pedido y la entrega.
                     </div>
                     <a t-attf-href="/my/orders/{{ sale_order.id }}/rate" class="btn btn-warning">
-                        â­ Califica tu pedido
+                        Califica tu pedido
                     </a>
                 </t>
                 <t t-else="">
